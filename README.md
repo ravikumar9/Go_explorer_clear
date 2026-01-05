@@ -186,6 +186,42 @@ EMAIL_HOST_PASSWORD=your-password
 REDIS_URL=redis://localhost:6379/0
 ```
 
+## Development (DEV only)
+
+Follow these steps for local development with PostgreSQL:
+
+1. Copy `.env.example` to `.env` and update values (do not commit `.env`).
+
+2. Set DB_* variables in `.env` (DEV values):
+
+   DB_NAME=goexplorer_dev
+   DB_USER=goexplorer_dev_user
+   DB_PASSWORD=your_password_here
+   DB_HOST=localhost
+   DB_PORT=5432
+
+3. Install dependencies and run migrations:
+
+```bash
+pip install -r requirements.txt
+python manage.py migrate
+```
+
+4. Create superuser and seed sample data:
+
+```bash
+python manage.py createsuperuser
+python manage.py seed_dev
+```
+
+5. Run server:
+
+```bash
+python manage.py runserver
+```
+
+This is a dev-only setup: keep `DEBUG=True`, use the dev DB, and do not set production secrets here.
+
 ## Deployment
 
 ### Production Checklist

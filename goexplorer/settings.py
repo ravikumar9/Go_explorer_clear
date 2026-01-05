@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'users',
     'notifications',
     'property_owners',
+    'dashboard',
+    'audit_logs',
 ]
 
 MIDDLEWARE = [
@@ -80,12 +82,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'goexplorer.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL', default='sqlite:///db.sqlite3'),
-        conn_max_age=600
-    )
-}
+# Support explicit DB_* env vars for development (preferred) falling back to DATABASE_URL or sqlite.
+DB_NAME = config('DB_NAME', default=None)
+if DB_NAME:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': DB_NAME,
+            'USER': config('DB_USER', default=''),
+            'PASSWORD': config('DB_PASSWORD', default=''),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL', default='sqlite:///db.sqlite3'),
+            conn_max_age=600
+        )
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -140,6 +156,7 @@ CORS_ALLOW_CREDENTIALS = True
 # REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        # JWT support: add 'rest_framework_simplejwt.authentication.JWTAuthentication' in production
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -235,6 +252,31 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 
 # Logging
+# Ensure logs directory exists (avoid "Unable to configure handler 'file'") and allow fallback to console-only logging.
+LOGS_DIR = BASE_DIR / 'logs'
+try:
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    file_handler_available = True
+except Exception:
+    # Directory creation failed; fall back to console-only logging.
+    file_handler_available = False
+
+handlers = {
+    'console': {
+        'level': 'INFO',
+        'class': 'logging.StreamHandler',
+        'formatter': 'verbose',
+    }
+}
+
+if file_handler_available:
+    handlers['file'] = {
+        'level': 'INFO',
+        'class': 'logging.FileHandler',
+        'filename': str(LOGS_DIR / 'goexplorer.log'),
+        'formatter': 'verbose',
+    }
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -244,21 +286,9 @@ LOGGING = {
             'style': '{',
         },
     },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'goexplorer.log',
-            'formatter': 'verbose',
-        },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
+    'handlers': handlers,
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': list(handlers.keys()),
         'level': 'INFO',
     },
 }
