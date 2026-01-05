@@ -1,5 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+from decimal import Decimal
+from datetime import datetime, date
 from core.models import TimeStampedModel, City
 
 
@@ -127,3 +130,90 @@ class RoomAvailability(models.Model):
     
     def __str__(self):
         return f"{self.room_type} - {self.date}"
+
+
+class HotelDiscount(TimeStampedModel):
+    """Discounts for hotels/rooms"""
+    DISCOUNT_TYPES = [
+        ('percentage', 'Percentage'),
+        ('fixed', 'Fixed Amount'),
+        ('cashback', 'Cashback'),
+    ]
+    
+    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='discounts')
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES, default='percentage')
+    discount_value = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+    description = models.CharField(max_length=200)
+    code = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    
+    # Validity
+    valid_from = models.DateTimeField(default=timezone.now)
+    valid_till = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+    
+    # Conditions
+    min_booking_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)]
+    )
+    max_discount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Maximum discount amount if type is percentage"
+    )
+    usage_limit = models.IntegerField(null=True, blank=True)
+    usage_count = models.IntegerField(default=0)
+    
+    class Meta:
+        ordering = ['-valid_from']
+    
+    def __str__(self):
+        return f"{self.hotel.name} - {self.description}"
+    
+    def is_valid(self):
+        """Check if discount is still valid"""
+        now = timezone.now()
+        return (
+            self.is_active and
+            self.valid_from <= now <= self.valid_till and
+            (self.usage_limit is None or self.usage_count < self.usage_limit)
+        )
+    
+    def calculate_discount(self, amount):
+        """Calculate discount for given amount"""
+        if amount < self.min_booking_amount:
+            return Decimal('0.00')
+        
+        if self.discount_type == 'percentage':
+            discount = (amount * self.discount_value) / Decimal('100')
+            if self.max_discount:
+                discount = min(discount, self.max_discount)
+            return discount
+        elif self.discount_type == 'fixed':
+            return min(self.discount_value, amount)
+        elif self.discount_type == 'cashback':
+            return self.discount_value
+        return Decimal('0.00')
+
+
+class PriceLog(TimeStampedModel):
+    """Log for price changes (audit trail)"""
+    room_type = models.ForeignKey(RoomType, on_delete=models.CASCADE, related_name='price_logs')
+    old_price = models.DecimalField(max_digits=10, decimal_places=2)
+    new_price = models.DecimalField(max_digits=10, decimal_places=2)
+    change_date = models.DateField(null=True, blank=True, help_text="Date when price changes take effect")
+    reason = models.CharField(max_length=200, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.room_type} - {self.old_price} -> {self.new_price}"

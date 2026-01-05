@@ -1,10 +1,12 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from core.models import TimeStampedModel
 from hotels.models import RoomType
-from buses.models import BusSchedule, SeatLayout
+from buses.models import BusSchedule, SeatLayout, BusRoute
 from packages.models import PackageDeparture
 import uuid
+import json
 
 
 class Booking(TimeStampedModel):
@@ -15,6 +17,7 @@ class Booking(TimeStampedModel):
         ('cancelled', 'Cancelled'),
         ('completed', 'Completed'),
         ('refunded', 'Refunded'),
+        ('deleted', 'Deleted'),
     ]
     
     BOOKING_TYPES = [
@@ -26,6 +29,13 @@ class Booking(TimeStampedModel):
     booking_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings')
     
+    # Channel / External integration fields
+    external_booking_id = models.CharField(max_length=200, null=True, blank=True, db_index=True)
+    channel_name = models.CharField(max_length=100, null=True, blank=True)
+    channel_reference = models.CharField(max_length=200, null=True, blank=True)
+    sync_status = models.CharField(max_length=50, default='pending', choices=[('pending','Pending'), ('synced','Synced'), ('failed','Failed')])
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    booking_source = models.CharField(max_length=20, choices=[('internal','Internal'), ('external','External')], default='internal')
     booking_type = models.CharField(max_length=20, choices=BOOKING_TYPES)
     status = models.CharField(max_length=20, choices=BOOKING_STATUS, default='pending')
     
@@ -37,6 +47,25 @@ class Booking(TimeStampedModel):
     customer_email = models.EmailField()
     customer_phone = models.CharField(max_length=15)
     
+    # NOTE: PII should be encrypted in the DB in production. For now we provide mask helpers.
+    def masked_phone(self):
+        if not self.customer_phone:
+            return ''
+        s = str(self.customer_phone)
+        if len(s) <= 4:
+            return '****'
+        return s[:2] + '*' * (len(s) - 4) + s[-2:]
+
+    def masked_email(self):
+        if not self.customer_email:
+            return ''
+        parts = self.customer_email.split('@')
+        if len(parts[0]) <= 2:
+            local = '*' * len(parts[0])
+        else:
+            local = parts[0][0] + '*' * (len(parts[0]) - 2) + parts[0][-1]
+        return f"{local}@{parts[1]}"
+    
     special_requests = models.TextField(blank=True)
     
     # Cancellation
@@ -44,11 +73,26 @@ class Booking(TimeStampedModel):
     cancelled_at = models.DateTimeField(null=True, blank=True)
     refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
+    # Soft delete tracking
+    is_deleted = models.BooleanField(default=False)
+    deleted_reason = models.TextField(blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='deleted_bookings')
+    
     class Meta:
         ordering = ['-created_at']
     
     def __str__(self):
         return f"{self.booking_id} - {self.user.username} - {self.booking_type}"
+    
+    def soft_delete(self, user=None, reason=''):
+        """Soft delete booking"""
+        self.is_deleted = True
+        self.status = 'deleted'
+        self.deleted_at = timezone.now()
+        self.deleted_by = user
+        self.deleted_reason = reason
+        self.save()
 
 
 class HotelBooking(TimeStampedModel):
@@ -73,11 +117,24 @@ class BusBooking(TimeStampedModel):
     """Bus booking details"""
     booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name='bus_details')
     bus_schedule = models.ForeignKey(BusSchedule, on_delete=models.PROTECT)
+    bus_route = models.ForeignKey(BusRoute, on_delete=models.PROTECT, null=True, blank=True)
     
     journey_date = models.DateField()
+    boarding_point = models.CharField(max_length=200, blank=True)
+    dropping_point = models.CharField(max_length=200, blank=True)
     
     def __str__(self):
         return f"Bus Booking - {self.booking.booking_id}"
+    
+    @property
+    def bus_name(self):
+        """Get bus name/number"""
+        return self.bus_schedule.route.bus.bus_number if self.bus_schedule else ""
+    
+    @property
+    def total_seats_booked(self):
+        """Get total seats booked"""
+        return self.seats.count()
 
 
 class BusBookingSeat(models.Model):
@@ -130,3 +187,22 @@ class Review(TimeStampedModel):
     
     def __str__(self):
         return f"Review for {self.booking.booking_id} - {self.rating} stars"
+
+
+class BookingAuditLog(TimeStampedModel):
+    """Audit log for booking changes"""
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='audit_logs')
+    edited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    field_name = models.CharField(max_length=100)
+    old_value = models.TextField(blank=True)
+    new_value = models.TextField(blank=True)
+    
+    action = models.CharField(max_length=50, default='updated', help_text='updated, deleted, restored, etc.')
+    notes = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Log for {self.booking.booking_id} - {self.field_name} by {self.edited_by}"

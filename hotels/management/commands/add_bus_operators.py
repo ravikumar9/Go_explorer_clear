@@ -66,9 +66,10 @@ class Command(BaseCommand):
 
         cities = {}
         for city_name, state in cities_data:
+            # Use both name and state as lookup to avoid duplicates
             city, _ = City.objects.get_or_create(
                 name=city_name,
-                defaults={'state': state}
+                state=state
             )
             cities[city_name] = city
 

@@ -1,0 +1,256 @@
+{
+  "info": {
+    "name": "Hotel Search API",
+    "description": "Complete API testing collection for hotel search and booking",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Hotel Search",
+      "item": [
+        {
+          "name": "List All Hotels",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/list/?page=1&page_size=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "list", ""],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Hotels by City",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/search/?city_id=1&page_size=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "search", ""],
+              "query": [
+                { "key": "city_id", "value": "1" },
+                { "key": "page_size", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search with Price Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/search/?min_price=5000&max_price=50000&page_size=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "search", ""],
+              "query": [
+                { "key": "min_price", "value": "5000" },
+                { "key": "max_price", "value": "50000" },
+                { "key": "page_size", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search with Star Rating Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/search/?star_rating=5&page_size=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "search", ""],
+              "query": [
+                { "key": "star_rating", "value": "5" },
+                { "key": "page_size", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search with Amenities Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/search/?has_pool=true&has_gym=true&page_size=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "search", ""],
+              "query": [
+                { "key": "has_pool", "value": "true" },
+                { "key": "has_gym", "value": "true" },
+                { "key": "page_size", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sort Hotels by Price (Ascending)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/search/?sort_by=price_asc&page_size=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "search", ""],
+              "query": [
+                { "key": "sort_by", "value": "price_asc" },
+                { "key": "page_size", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sort Hotels by Rating (Descending)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/search/?sort_by=rating_desc&page_size=10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "search", ""],
+              "query": [
+                { "key": "sort_by", "value": "rating_desc" },
+                { "key": "page_size", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Hotel Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/1/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "1", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pricing",
+      "item": [
+        {
+          "name": "Calculate Price",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_type_id\": 1,\n  \"check_in\": \"2024-01-15\",\n  \"check_out\": \"2024-01-18\",\n  \"num_rooms\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/calculate-price/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "calculate-price", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Price with Discount",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_type_id\": 1,\n  \"check_in\": \"2024-01-15\",\n  \"check_out\": \"2024-01-20\",\n  \"num_rooms\": 2,\n  \"discount_code\": \"SAVE20\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/calculate-price/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "calculate-price", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Availability",
+      "item": [
+        {
+          "name": "Check Availability",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_type_id\": 1,\n  \"check_in\": \"2024-01-15\",\n  \"check_out\": \"2024-01-18\",\n  \"num_rooms\": 2\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/check-availability/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "check-availability", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Hotel Occupancy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/hotels/api/1/occupancy/?start_date=2024-01-10&end_date=2024-01-20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["hotels", "api", "1", "occupancy", ""],
+              "query": [
+                { "key": "start_date", "value": "2024-01-10" },
+                { "key": "end_date", "value": "2024-01-20" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

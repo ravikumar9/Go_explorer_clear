@@ -8,6 +8,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('dashboard/', include('dashboard.urls')),
     path('', include('core.urls')),
     # Web page routes with unique namespaces
     # Web routes (use each app's native namespace)

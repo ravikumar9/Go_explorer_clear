@@ -15,6 +15,19 @@ class Command(BaseCommand):
         self.stdout.write('Seeding hotels...')
         call_command('seed_hotels')
 
+        self.stdout.write('Adding hotel images...')
+        call_command('add_hotel_images')
+
+        self.stdout.write('Seeding bus operators, buses and routes...')
+        call_command('add_bus_operators')
+
+        self.stdout.write('Adding packages...')
+        call_command('add_packages')
+
+        # Create dev admin user
+        self.stdout.write('Ensuring development admin user exists...')
+        call_command('create_dev_admin')
+
         # Locate populate_bookings.py at project root and call its main() function
         project_root = Path(__file__).resolve().parents[3]
         script_path = project_root / 'populate_bookings.py'
