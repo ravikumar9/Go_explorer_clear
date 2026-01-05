@@ -172,7 +172,7 @@
                     <div class="hotel-card h-100">
                         <div class="hotel-image">
                             {% if hotel.image %}
-                                <img src="{{ hotel.image.url }}" 
+                                <img src="{{ hotel.image.url }}" loading="lazy" style="object-fit: cover; aspect-ratio: 16/9;" 
                                      alt="{{ hotel.name }}"
                                      onerror="this.src='https://via.placeholder.com/400x250?text=Hotel+Image'">
                             {% else %}

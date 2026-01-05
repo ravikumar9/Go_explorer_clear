@@ -144,7 +144,7 @@
         <div class="col-lg-8">
             <!-- Image Gallery -->
             <div class="image-gallery">
-                <img id="mainImage" 
+                <img id="mainImage" loading="lazy" style="object-fit: cover; aspect-ratio: 16/9;" 
                      src="{% if hotel.image %}{{ hotel.image.url }}{% else %}https://via.placeholder.com/800x400?text={{ hotel.name|urlencode }}{% endif %}" 
                      alt="{{ hotel.name }}" 
                      class="main-image"

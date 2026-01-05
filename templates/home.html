@@ -158,7 +158,7 @@
             <div class="col-md-4 mb-4">
                 <div class="card h-100 shadow-sm border-0 hover-shadow">
                     {% if hotel.image %}
-                    <img src="{{ hotel.image.url }}" class="card-img-top" alt="{{ hotel.name }}" style="height: 200px; object-fit: cover;">
+                    <img src="{{ hotel.image.url }}" class="card-img-top" alt="{{ hotel.name }}" style="height: 200px; object-fit: cover; aspect-ratio: 16/9;" loading="lazy">
                     {% else %}
                     <div class="bg-secondary" style="height: 200px;"></div>
                     {% endif %}
