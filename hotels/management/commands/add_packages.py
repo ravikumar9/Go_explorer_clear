@@ -1,4 +1,6 @@
 import requests
+import os
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
@@ -172,16 +174,37 @@ class Command(BaseCommand):
                 # Add destination city
                 package.destination_cities.add(city)
                 
-                # Download and save image
-                try:
-                    response = requests.get(pkg_data['image_url'], timeout=5)
-                    if response.status_code == 200:
-                        file_content = ContentFile(response.content)
+                # Download and save image with fallback to local placeholder
+                def _download_first_success(urls):
+                    for u in urls:
+                        try:
+                            resp = requests.get(u, timeout=5)
+                            if resp.status_code == 200:
+                                return resp.content
+                        except Exception:
+                            continue
+                    return None
+
+                local_placeholder = os.path.join(settings.BASE_DIR, 'static', 'images', 'package_placeholder.svg')
+                content = _download_first_success([pkg_data['image_url']])
+                if not content:
+                    try:
+                        with open(local_placeholder, 'rb') as f:
+                            content = f.read()
+                            self.stdout.write(self.style.WARNING(f'⚠ Using local placeholder for {pkg_data["name"]}'))
+                    except Exception:
+                        content = None
+
+                if content:
+                    try:
+                        file_content = ContentFile(content)
                         filename = f"{slugify(pkg_data['name'])}.jpg"
                         package.image.save(filename, file_content, save=True)
                         self.stdout.write(f"✓ Added image for {pkg_data['name']}")
-                except Exception as e:
-                    self.stdout.write(f"⚠ Could not download image for {pkg_data['name']}: {e}")
+                    except Exception as e:
+                        self.stdout.write(self.style.WARNING(f"⚠ Could not save image for {pkg_data['name']}: {e}"))
+                else:
+                    self.stdout.write(self.style.WARNING(f"⚠ No image available for {pkg_data['name']}"))
 
                 # Create sample itinerary
                 for day in range(1, pkg_data['duration_days'] + 1):

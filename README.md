@@ -186,6 +186,83 @@ EMAIL_HOST_PASSWORD=your-password
 REDIS_URL=redis://localhost:6379/0
 ```
 
+## Development (DEV only)
+
+Follow these steps for local development with PostgreSQL:
+
+1. Copy `.env.example` to `.env` and update values (do not commit `.env`).
+
+2. Set DB_* variables in `.env` (DEV values):
+
+   DB_NAME=goexplorer_dev
+   DB_USER=goexplorer_dev_user
+   DB_PASSWORD=your_password_here
+   DB_HOST=localhost
+   DB_PORT=5432
+
+3. Install dependencies and run migrations:
+
+```bash
+pip install -r requirements.txt
+python manage.py migrate
+```
+
+4. Create superuser and seed sample data:
+
+```bash
+python manage.py createsuperuser
+python manage.py seed_dev
+```
+
+5. Verify DEV environment & static files:
+
+```bash
+python manage.py check_dev --collectstatic
+```
+
+6. Run server (DEV):
+
+```bash
+python manage.py runserver
+```
+
+Or using Gunicorn (DEV server with systemd + nginx):
+
+- Copy `.env.example` -> `.env` and update values as described earlier
+- Install dependencies and create virtualenv on server:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+- Run migrations, collectstatic and seed:
+
+```bash
+python manage.py migrate
+python manage.py collectstatic --noinput
+python manage.py seed_dev
+```
+
+- Deploy Gunicorn systemd unit and NGINX (templates provided under `deploy/`):
+
+```bash
+# copy service file
+sudo cp deploy/gunicorn.goexplorer.service /etc/systemd/system/gunicorn-goexplorer.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now gunicorn-goexplorer
+
+# copy nginx conf (verify path and server_name)
+sudo cp deploy/nginx.goexplorer.dev.conf /etc/nginx/sites-available/goexplorer-dev
+sudo ln -s /etc/nginx/sites-available/goexplorer-dev /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+After this the app should be accessible at http://goexplorer-dev.cloud
+
+This is a dev-only setup: keep `DEBUG=True`, use the dev DB, and do not set production secrets here.
+
 ## Deployment
 
 ### Production Checklist

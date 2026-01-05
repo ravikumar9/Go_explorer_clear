@@ -42,10 +42,10 @@
                                     <div class="row g-3">
                                         <div class="col-md-3">
                                             <label class="form-label">City <span class="text-danger">*</span></label>
-                                            <select class="form-select" id="hotelCity" name="city" required>
-                                                <option value="">Select City</option>
+                                            <select class="form-select" id="hotelCity" name="city_id" required>
+                                                   <option value="" selected disabled>Select City</option>
                                                 {% for city in popular_cities %}
-                                                <option value="{{ city.id }}">{{ city.name }}</option>
+                                                   <option value="{{ city.id }}">{{ city.name }}</option>
                                                 {% endfor %}
                                             </select>
                                             <div id="hotelCityError" class="text-danger small mt-1" style="display: none;"></div>
@@ -77,7 +77,7 @@
                                         <div class="col-md-3">
                                             <label class="form-label">From <span class="text-danger">*</span></label>
                                             <select class="form-select" id="busSource" name="source" required>
-                                                <option value="">Select City</option>
+                                                <option value="" selected disabled>Select City</option>
                                                 {% for city in popular_cities %}
                                                 <option value="{{ city.id }}">{{ city.name }}</option>
                                                 {% endfor %}
@@ -87,7 +87,7 @@
                                         <div class="col-md-3">
                                             <label class="form-label">To <span class="text-danger">*</span></label>
                                             <select class="form-select" id="busDestination" name="destination" required>
-                                                <option value="">Select City</option>
+                                                <option value="" selected disabled>Select City</option>
                                                 {% for city in popular_cities %}
                                                 <option value="{{ city.id }}">{{ city.name }}</option>
                                                 {% endfor %}
@@ -614,6 +614,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Make entire input area open the picker
             input.addEventListener('focus', () => openPicker(input));
             input.addEventListener('click', () => openPicker(input));
+
+            // Also open when clicking on the input's container (useful if styling has labels or icons)
+            const parent = input.parentElement;
+            if (parent) {
+                parent.style.cursor = 'pointer';
+                parent.addEventListener('click', (e) => {
+                    if (e.target !== input) openPicker(input);
+                });
+            }
         }
     });
 });

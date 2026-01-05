@@ -271,6 +271,11 @@
             }
             checkinInput.addEventListener('click', () => openPicker(checkinInput));
             checkinInput.addEventListener('focus', () => openPicker(checkinInput));
+            const cParent = checkinInput.parentElement;
+            if (cParent) {
+                cParent.style.cursor = 'pointer';
+                cParent.addEventListener('click', (e) => { if (e.target !== checkinInput) openPicker(checkinInput); });
+            }
         }
 
         if (checkoutInput) {
@@ -280,6 +285,11 @@
             }
             checkoutInput.addEventListener('click', () => openPicker(checkoutInput));
             checkoutInput.addEventListener('focus', () => openPicker(checkoutInput));
+            const coParent = checkoutInput.parentElement;
+            if (coParent) {
+                coParent.style.cursor = 'pointer';
+                coParent.addEventListener('click', (e) => { if (e.target !== checkoutInput) openPicker(checkoutInput); });
+            }
         }
     });
 </script>

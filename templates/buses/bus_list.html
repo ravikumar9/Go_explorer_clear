@@ -441,9 +441,28 @@
             }
         });
 
-        // Set min date to today
+        const openPicker = (input) => {
+            if (input && typeof input.showPicker === 'function') {
+                input.showPicker();
+            } else if (input) {
+                // fallback: focus so browser may show native UI
+                input.focus();
+            }
+        };
+
+        // Set min date to today and make clicking container open the picker
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('travel-date').setAttribute('min', today);
+        const travelInput = document.getElementById('travel-date');
+        if (travelInput) {
+            travelInput.setAttribute('min', today);
+            travelInput.addEventListener('click', () => openPicker(travelInput));
+            travelInput.addEventListener('focus', () => openPicker(travelInput));
+            const parent = travelInput.parentElement;
+            if (parent) {
+                parent.style.cursor = 'pointer';
+                parent.addEventListener('click', (e) => { if (e.target !== travelInput) openPicker(travelInput); });
+            }
+        }
     });
 </script>
 {% endblock %}

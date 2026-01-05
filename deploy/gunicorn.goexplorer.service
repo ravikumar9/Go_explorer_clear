@@ -1,0 +1,17 @@
+[Unit]
+Description=gunicorn daemon for GoExplorer (dev)
+After=network.target
+
+[Service]
+User=deployer
+Group=www-data
+WorkingDirectory=/home/deployer/goexplorer
+EnvironmentFile=/home/deployer/goexplorer/.env
+ExecStart=/home/deployer/goexplorer/.venv/bin/gunicorn \
+    --access-logfile - \
+    --workers 3 \
+    --bind unix:/run/gunicorn-goexplorer.sock \
+    goexplorer.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
