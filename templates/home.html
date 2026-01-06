@@ -177,7 +177,8 @@
                                 <span class="badge bg-success">{{ hotel.review_rating }}/5</span>
                             </div>
                         </div>
-                        <a href="/api/hotels/{{ hotel.id }}/" class="btn btn-outline-primary btn-sm mt-3 w-100">View Details</a>
+                        <!-- Link should point to the user-facing hotel detail page, not the API endpoint -->
+                        <a href="/hotels/{{ hotel.id }}/" class="btn btn-outline-primary btn-sm mt-3 w-100">View Details</a>
                     </div>
                 </div>
             </div>

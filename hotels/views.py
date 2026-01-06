@@ -497,7 +497,8 @@ def book_hotel(request, pk):
                 total_nights=nights,
             )
 
-            return redirect(f'/bookings/{booking.id}/confirm/')
+            # Use the public booking UUID, not the numeric PK, to match URL patterns
+            return redirect(f'/bookings/{booking.booking_id}/confirm/')
         except Exception as exc:
             if lock and lock.source == 'internal_cm':
                 InternalInventoryService(hotel).release_lock(lock)
