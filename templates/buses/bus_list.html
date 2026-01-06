@@ -319,11 +319,13 @@
                             {% endif %}
                             <small class="text-muted d-block mt-2">{{ bus.total_seats }} seats available</small>
                             {% if route %}
-                                <a href="{% url 'buses:bus_detail' bus.id %}?route_id={{ route.id }}{% if selected_date %}&travel_date={{ selected_date }}{% endif %}" class="btn btn-primary mt-3 w-100">
-                                    View & Book
+                                <a href="{% url 'buses:bus_detail' bus.id %}?route_id={{ route.id }}{% if selected_date %}&travel_date={{ selected_date }}{% endif %}#seatLayout" class="btn btn-primary mt-3 w-100">
+                                    View Seats & Book
                                 </a>
+                                <small class="text-muted d-block mt-2">Seat selection on next step</small>
                             {% else %}
-                                <a href="{% url 'buses:bus_detail' bus.id %}" class="btn btn-primary mt-3 w-100">View & Book</a>
+                                <a href="{% url 'buses:bus_detail' bus.id %}#seatLayout" class="btn btn-primary mt-3 w-100">View Seats & Book</a>
+                                <small class="text-muted d-block mt-2">Seat selection on next step</small>
                             {% endif %}
                         </div>
                         {% endwith %}

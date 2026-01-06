@@ -127,10 +127,22 @@
         font-weight: 600;
         width: 100%;
         margin-top: 1rem;
+        display: block;
+        visibility: visible;
+        opacity: 1;
     }
 
     .btn-book:hover {
         background: #e55a2b;
+    }
+
+    /* Keep the booking CTA visible on larger viewports where other rules might hide it */
+    @media (min-width: 768px) {
+        .btn-book {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
     }
 </style>
 {% endblock %}
@@ -346,7 +358,7 @@
                     </div>
 
                     {% if user.is_authenticated %}
-                        <button type="button" class="btn btn-primary btn-book" onclick="validateAndSubmit(event)">
+                        <button type="submit" id="hotelBookNowBtn" class="btn btn-primary btn-book" onclick="validateAndSubmit(event)" aria-label="Proceed to payment">
                             <i class="fas fa-check-circle"></i> Proceed to Payment
                         </button>
                     {% else %}

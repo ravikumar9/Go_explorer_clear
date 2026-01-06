@@ -42,6 +42,14 @@ python manage.py test tests.test_features_e2e --verbosity=2
 
 Visit: http://localhost:8000/
 
+## Documentation
+
+- All project documents now live in `docs/`
+- Start here: [Documentation Start](docs/DOCUMENTATION_START_HERE.md)
+- Index of all guides: [Documentation Index](docs/DOCUMENTATION_INDEX.md)
+- E2E setup: [E2E Setup Complete](docs/E2E_SETUP_COMPLETE.md)
+- UI fixes: [UI Fixes Implementation Guide](docs/UI_FIXES_IMPLEMENTATION_GUIDE.md)
+
 ## Project Structure
 
 ```
