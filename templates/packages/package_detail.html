@@ -128,7 +128,7 @@
         <div class="col-lg-8">
             <!-- Hero Image -->
             {% if package.image %}
-                <img src="{{ package.image.url }}" alt="{{ package.name }}" class="hero-image">
+                <img src="{{ package.image.url }}" alt="{{ package.name }}" class="hero-image" loading="lazy" style="aspect-ratio: 16/9; object-fit: cover;">
             {% endif %}
 
             <!-- Overview -->
@@ -253,7 +253,7 @@
                     </div>
 
                     {% if user.is_authenticated %}
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" id="packageBookNowBtn" class="btn btn-primary w-100" data-default-label="<i class='fas fa-check-circle'></i> Book Now">
                             <i class="fas fa-check-circle"></i> Book Now
                         </button>
                     {% else %}
@@ -293,6 +293,39 @@
 
         numTravelers.addEventListener('change', calc);
         calc();
+
+        // Prevent double submissions and show a loading state during booking
+        const bookingForm = document.getElementById('bookingForm');
+        const submitBtn = document.getElementById('packageBookNowBtn');
+
+        if (bookingForm && submitBtn) {
+            bookingForm.addEventListener('submit', function(event) {
+                if (bookingForm.dataset.submitting === 'true') {
+                    event.preventDefault();
+                    return;
+                }
+
+                // Allow native validation to run
+                if (!bookingForm.checkValidity()) {
+                    return;
+                }
+
+                bookingForm.dataset.submitting = 'true';
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Booking...";
+                submitBtn.setAttribute('aria-busy', 'true');
+
+                // Failsafe to re-enable in case the response is slow
+                setTimeout(() => {
+                    if (bookingForm.dataset.submitting === 'true') {
+                        bookingForm.dataset.submitting = 'false';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = submitBtn.dataset.defaultLabel || "<i class='fas fa-check-circle'></i> Book Now";
+                        submitBtn.removeAttribute('aria-busy');
+                    }
+                }, 15000);
+            });
+        }
     });
 </script>
 {% endblock %}

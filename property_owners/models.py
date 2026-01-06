@@ -142,3 +142,24 @@ class PropertyBooking(TimeStampedModel):
     
     def __str__(self):
         return f"Booking at {self.property.name} by {self.guest_name}"
+
+
+class PropertyImage(TimeStampedModel):
+    """Images for a property listing"""
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='property_images/', null=True, blank=True)
+    caption = models.CharField(max_length=255, blank=True)
+    is_primary = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Image for {self.property.name}"
+
+
+class PropertyAmenity(models.Model):
+    """Catalog of amenities that properties can reference"""
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=50, blank=True)
+    icon = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return self.name

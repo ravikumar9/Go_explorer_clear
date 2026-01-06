@@ -33,9 +33,17 @@ def bus_list(request):
     if source_city or destination_city:
         routes = BusRoute.objects.all()
         if source_city:
-            routes = routes.filter(source_city__id=source_city)
+            try:
+                scid = int(source_city)
+                routes = routes.filter(source_city_id=scid)
+            except (ValueError, TypeError):
+                routes = routes.filter(source_city__name__iexact=source_city)
         if destination_city:
-            routes = routes.filter(destination_city__id=destination_city)
+            try:
+                dcid = int(destination_city)
+                routes = routes.filter(destination_city_id=dcid)
+            except (ValueError, TypeError):
+                routes = routes.filter(destination_city__name__iexact=destination_city)
         bus_ids = routes.values_list('bus_id', flat=True)
         buses = buses.filter(id__in=bus_ids)
     
@@ -76,7 +84,13 @@ def bus_list(request):
     for bus in buses:
         route = None
         if source_city and destination_city:
-            route = bus.routes.filter(source_city_id=source_city, destination_city_id=destination_city).first()
+            # Accept either numeric IDs or city names
+            try:
+                scid = int(source_city)
+                dcid = int(destination_city)
+                route = bus.routes.filter(source_city_id=scid, destination_city_id=dcid).first()
+            except (ValueError, TypeError):
+                route = bus.routes.filter(source_city__name__iexact=source_city, destination_city__name__iexact=destination_city).first()
         if not route:
             route = bus.routes.first()
         if route:
@@ -275,10 +289,18 @@ class BusSearchView(generics.ListAPIView):
         routes = BusRoute.objects.filter(is_active=True)
         
         if source_city:
-            routes = routes.filter(source_city_id=source_city)
+            try:
+                scid = int(source_city)
+                routes = routes.filter(source_city_id=scid)
+            except (ValueError, TypeError):
+                routes = routes.filter(source_city__name__iexact=source_city)
         
         if destination_city:
-            routes = routes.filter(destination_city_id=destination_city)
+            try:
+                dcid = int(destination_city)
+                routes = routes.filter(destination_city_id=dcid)
+            except (ValueError, TypeError):
+                routes = routes.filter(destination_city__name__iexact=destination_city)
         
         # Then get schedules for these routes
         queryset = BusSchedule.objects.filter(route__in=routes, is_active=True).select_related(

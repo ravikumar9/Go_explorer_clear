@@ -319,11 +319,13 @@
                             {% endif %}
                             <small class="text-muted d-block mt-2">{{ bus.total_seats }} seats available</small>
                             {% if route %}
-                                <a href="{% url 'buses:bus_detail' bus.id %}?route_id={{ route.id }}{% if selected_date %}&travel_date={{ selected_date }}{% endif %}" class="btn btn-primary mt-3 w-100">
-                                    View & Book
+                                <a href="{% url 'buses:bus_detail' bus.id %}?route_id={{ route.id }}{% if selected_date %}&travel_date={{ selected_date }}{% endif %}#seatLayout" class="btn btn-primary mt-3 w-100">
+                                    View Seats & Book
                                 </a>
+                                <small class="text-muted d-block mt-2">Seat selection on next step</small>
                             {% else %}
-                                <a href="{% url 'buses:bus_detail' bus.id %}" class="btn btn-primary mt-3 w-100">View & Book</a>
+                                <a href="{% url 'buses:bus_detail' bus.id %}#seatLayout" class="btn btn-primary mt-3 w-100">View Seats & Book</a>
+                                <small class="text-muted d-block mt-2">Seat selection on next step</small>
                             {% endif %}
                         </div>
                         {% endwith %}
@@ -441,9 +443,28 @@
             }
         });
 
-        // Set min date to today
+        const openPicker = (input) => {
+            if (input && typeof input.showPicker === 'function') {
+                input.showPicker();
+            } else if (input) {
+                // fallback: focus so browser may show native UI
+                input.focus();
+            }
+        };
+
+        // Set min date to today and make clicking container open the picker
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('travel-date').setAttribute('min', today);
+        const travelInput = document.getElementById('travel-date');
+        if (travelInput) {
+            travelInput.setAttribute('min', today);
+            travelInput.addEventListener('click', () => openPicker(travelInput));
+            travelInput.addEventListener('focus', () => openPicker(travelInput));
+            const parent = travelInput.parentElement;
+            if (parent) {
+                parent.style.cursor = 'pointer';
+                parent.addEventListener('click', (e) => { if (e.target !== travelInput) openPicker(travelInput); });
+            }
+        }
     });
 </script>
 {% endblock %}

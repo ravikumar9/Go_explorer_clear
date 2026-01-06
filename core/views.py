@@ -12,7 +12,8 @@ class HomeView(TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['popular_cities'] = City.objects.filter(is_popular=True)[:6]
+        # Show full city list in the search dropdown so users can find any destination
+        context['popular_cities'] = City.objects.all().order_by('name')
         context['featured_hotels'] = Hotel.objects.filter(is_featured=True)[:6]
         context['featured_packages'] = Package.objects.filter(is_active=True)[:4]
         return context

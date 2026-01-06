@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Confirmation - GoExplorer{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <h4 class="alert-heading">
+            <i class="fas fa-check-circle"></i> Booking Successful!
+        </h4>
+        <p>Your booking has been confirmed. Please proceed to payment to complete your reservation.</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Booking Summary</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ booking.get_booking_type_display }} Booking</h5>
+                    <p class="mb-2"><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
+                    <p class="mb-2"><strong>Status:</strong> <span class="badge bg-warning">{{ booking.get_status_display }}</span></p>
+                    <p class="mb-2"><strong>Guest Name:</strong> {{ booking.customer_name }}</p>
+                    <p class="mb-2"><strong>Email:</strong> {{ booking.customer_email }}</p>
+                    <p class="mb-2"><strong>Phone:</strong> {{ booking.customer_phone }}</p>
+                    
+                    {% if booking.hotel_details %}
+                    <hr>
+                    <h6>Hotel Details</h6>
+                    <p class="mb-2"><strong>Hotel:</strong> {{ booking.hotel_details.room_type.hotel.name }}</p>
+                    <p class="mb-2"><strong>Room Type:</strong> {{ booking.hotel_details.room_type.name }}</p>
+                    <p class="mb-2"><strong>Check-in:</strong> {{ booking.hotel_details.check_in|date:"d M Y" }}</p>
+                    <p class="mb-2"><strong>Check-out:</strong> {{ booking.hotel_details.check_out|date:"d M Y" }}</p>
+                    <p class="mb-2"><strong>Nights:</strong> {{ booking.hotel_details.total_nights }}</p>
+                    <p class="mb-2"><strong>Rooms:</strong> {{ booking.hotel_details.number_of_rooms }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Amount</h5>
+                    <div class="alert alert-info">
+                        <p class="mb-0"><strong>₹{{ booking.total_amount|floatformat:"0" }}</strong></p>
+                    </div>
+                    <form method="post" class="text-center">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-credit-card"></i> Proceed to Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

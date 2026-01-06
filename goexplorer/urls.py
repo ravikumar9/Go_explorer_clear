@@ -8,6 +8,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('dashboard/', include('dashboard.urls')),
     path('', include('core.urls')),
     # Web page routes with unique namespaces
     # Web routes (use each app's native namespace)
@@ -24,12 +25,14 @@ urlpatterns = [
     path('api/packages/', include(('packages.urls', 'packages'), namespace='packages-api')),
     path('api/bookings/', include(('bookings.urls', 'bookings'), namespace='bookings-api')),
     path('api/payments/', include(('payments.urls', 'payments'), namespace='payments-api')),
-    path('api/users/', include(('users.urls', 'users'), namespace='users-api')),
+    path('api/users/', include(('users.api_urls', 'users_api'), namespace='users-api')),
 ]
 
-# Serve media files in development
-if settings.DEBUG:
+# Serve media files (enable in dev or when SERVE_MEDIA_FILES is true)
+if getattr(settings, "SERVE_MEDIA_FILES", settings.DEBUG):
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Admin site customization

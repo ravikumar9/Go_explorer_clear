@@ -145,7 +145,7 @@
                 <a href="{% url 'packages:package_detail' package.id %}" class="text-decoration-none text-dark">
                     <div class="package-card">
                         {% if package.image %}
-                            <img src="{{ package.image.url }}" alt="{{ package.name }}" class="package-image">
+                            <img src="{{ package.image.url }}" alt="{{ package.name }}" class="package-image" loading="lazy" style="aspect-ratio: 16/9; object-fit: cover;">
                         {% else %}
                             <div class="package-image">
                                 <i class="fas fa-plane"></i>

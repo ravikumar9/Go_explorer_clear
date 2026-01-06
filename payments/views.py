@@ -7,6 +7,8 @@ import razorpay
 import hmac
 import hashlib
 
+from hotels.channel_manager_service import finalize_booking_after_payment, release_inventory_on_failure
+
 
 class CreatePaymentOrderView(APIView):
     """Create Razorpay order"""
@@ -87,14 +89,17 @@ class VerifyPaymentView(APIView):
                 # Update booking
                 booking = payment.booking
                 booking.paid_amount += payment.amount
+                booking.payment_reference = razorpay_payment_id
+                booking.save(update_fields=['paid_amount', 'payment_reference', 'updated_at'])
+
                 if booking.paid_amount >= booking.total_amount:
-                    booking.status = 'confirmed'
-                booking.save()
+                    finalize_booking_after_payment(booking, payment_reference=razorpay_payment_id)
                 
                 return Response({'status': 'success', 'message': 'Payment verified successfully'})
             else:
                 payment.status = 'failed'
                 payment.save()
+                release_inventory_on_failure(payment.booking)
                 return Response({'status': 'failed', 'message': 'Invalid signature'}, status=status.HTTP_400_BAD_REQUEST)
                 
         except Payment.DoesNotExist:
@@ -114,8 +119,15 @@ class RazorpayWebhookView(APIView):
             # Handle payment captured
             pass
         elif event == 'payment.failed':
-            # Handle payment failed
-            pass
+            booking_id = request.data.get('payload', {}).get('payment', {}).get('entity', {}).get('notes', {}).get('booking_id')
+            if booking_id:
+                try:
+                    from bookings.models import Booking
+                    booking = Booking.objects.filter(booking_id=booking_id).first()
+                    if booking:
+                        release_inventory_on_failure(booking)
+                except Exception:
+                    pass
         elif event == 'refund.created':
             # Handle refund
             pass

@@ -80,10 +80,18 @@
     .search-form input[type="date"],
     .search-form input[type="number"] {
         cursor: pointer;
+        color: #212529;
+        background-color: #fff;
     }
 
     .search-form input[type="date"]::-webkit-calendar-picker-indicator {
         cursor: pointer;
+    }
+
+    .search-form input[type="date"]::-webkit-datetime-edit,
+    .search-form input[type="date"]::-webkit-input-placeholder {
+        color: #212529;
+        opacity: 1;
     }
 </style>
 {% endblock %}
@@ -171,8 +179,8 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="hotel-card h-100">
                         <div class="hotel-image">
-                            {% if hotel.image %}
-                                <img src="{{ hotel.image.url }}" 
+                            {% if hotel.primary_image_url %}
+                                <img src="{{ hotel.primary_image_url }}" loading="lazy" style="object-fit: cover; aspect-ratio: 16/9;" 
                                      alt="{{ hotel.name }}"
                                      onerror="this.src='https://via.placeholder.com/400x250?text=Hotel+Image'">
                             {% else %}
@@ -203,12 +211,23 @@
                             </div>
                             
                             <div class="mt-auto">
-                                {% if hotel.min_price and hotel.min_price > 0 %}
+                                {% if hotel.availability_snapshot %}
+                                    <p class="text-success small mb-1">
+                                        <i class="fas fa-check-circle"></i>
+                                        {{ hotel.availability_snapshot.available_rooms|default:"Availability updated" }} rooms available
+                                    </p>
+                                    {% if hotel.availability_snapshot.rate %}
+                                        <p class="price mb-1">₹{{ hotel.availability_snapshot.rate|floatformat:"0" }}/night</p>
+                                    {% endif %}
+                                {% elif hotel.min_price and hotel.min_price > 0 %}
                                     <p class="price mb-3">₹{{ hotel.min_price|floatformat:"0" }}/night</p>
                                 {% elif hotel.room_types.first %}
                                     <p class="price mb-3">₹{{ hotel.room_types.first.base_price|floatformat:"0" }}/night</p>
                                 {% else %}
                                     <p class="price mb-3">Price on request</p>
+                                {% endif %}
+                                {% if hotel.availability_error %}
+                                    <p class="text-warning small mb-2">{{ hotel.availability_error }}</p>
                                 {% endif %}
                                 {% with qs=request.GET.urlencode %}
                                     <a href="{% url 'hotels:hotel_detail' hotel.id %}{% if qs %}?{{ qs }}{% endif %}" class="btn btn-primary w-100">
@@ -258,6 +277,17 @@
         const checkinInput = document.getElementById('checkin');
         const checkoutInput = document.getElementById('checkout');
 
+        // Ensure query params repopulate date inputs on desktop
+        const params = new URLSearchParams(window.location.search);
+        const qsCheckin = params.get('checkin');
+        const qsCheckout = params.get('checkout');
+        if (checkinInput && qsCheckin) {
+            checkinInput.value = qsCheckin;
+        }
+        if (checkoutInput && qsCheckout) {
+            checkoutInput.value = qsCheckout;
+        }
+
         const openPicker = (input) => {
             if (input && typeof input.showPicker === 'function') {
                 input.showPicker();
@@ -271,6 +301,11 @@
             }
             checkinInput.addEventListener('click', () => openPicker(checkinInput));
             checkinInput.addEventListener('focus', () => openPicker(checkinInput));
+            const cParent = checkinInput.parentElement;
+            if (cParent) {
+                cParent.style.cursor = 'pointer';
+                cParent.addEventListener('click', (e) => { if (e.target !== checkinInput) openPicker(checkinInput); });
+            }
         }
 
         if (checkoutInput) {
@@ -280,6 +315,11 @@
             }
             checkoutInput.addEventListener('click', () => openPicker(checkoutInput));
             checkoutInput.addEventListener('focus', () => openPicker(checkoutInput));
+            const coParent = checkoutInput.parentElement;
+            if (coParent) {
+                coParent.style.cursor = 'pointer';
+                coParent.addEventListener('click', (e) => { if (e.target !== checkoutInput) openPicker(checkoutInput); });
+            }
         }
     });
 </script>

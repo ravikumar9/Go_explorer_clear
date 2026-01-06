@@ -1,0 +1,30 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+{% block content %}
+  <div class="goexplorer-admin-header">
+    <div class="goexplorer-header-left">
+      <h1 class="changelist-title">All Bookings <span class="result-count">({{ booking_counts.all }})</span></h1>
+      <div class="goexplorer-tabs">
+        <a href="?" class="tab {% if not request.GET.tab %}active{% endif %}">All <span class="tab-count">{{ booking_counts.all }}</span></a>
+        <a href="?tab=today" class="tab {% if request.GET.tab == 'today' %}active{% endif %}">Today <span class="tab-count">{{ booking_counts.today }}</span></a>
+        <a href="?tab=confirmed" class="tab {% if request.GET.tab == 'confirmed' %}active{% endif %}">Confirmed <span class="tab-count">{{ booking_counts.confirmed }}</span></a>
+        <a href="?tab=cancelled" class="tab {% if request.GET.tab == 'cancelled' %}active{% endif %}">Cancelled <span class="tab-count">{{ booking_counts.cancelled }}</span></a>
+      </div>
+
+      <div class="status-summary">
+        <span class="status-badge pending">Pending: {{ booking_counts.pending }}</span>
+        <span class="status-badge confirmed">Confirmed: {{ booking_counts.confirmed }}</span>
+        <span class="status-badge cancelled">Cancelled: {{ booking_counts.cancelled }}</span>
+        <span class="status-badge refunded">Refunded: {{ booking_counts.refunded }}</span>
+        <span class="status-badge deleted">Deleted: {{ booking_counts.deleted }}</span>
+      </div>
+    </div>
+
+    <div class="goexplorer-header-right">
+      <a href="{% url 'admin:bookings_booking_add' %}" class="add-booking-btn" title="Add Booking">+ Add Booking</a>
+    </div>
+  </div>
+
+  {{ block.super }}
+
+{% endblock %}

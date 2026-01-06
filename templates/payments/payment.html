@@ -334,7 +334,8 @@ function initiateRazorpayPayment() {
                 if (result.status === 'success') {
                     showSuccess('Payment successful! Redirecting...');
                     setTimeout(() => {
-                        window.location.href = `{% url "bookings:booking-confirmation" booking.booking_id %}`;
+                        // Redirect to booking confirmation page (correct URL name)
+                        window.location.href = `{% url "bookings:booking-confirm" booking.booking_id %}`;
                     }, 2000);
                 } else {
                     showError('Payment verification failed. Please contact support.');

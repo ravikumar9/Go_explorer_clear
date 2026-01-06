@@ -1,11 +1,7 @@
+"""Project package for goexplorer.
+
+Keep this file minimal to avoid side-effects at import time.
+ASGI/WSGI application objects are defined in `asgi.py` and `wsgi.py`.
 """
-ASGI config for goexplorer project.
-"""
 
-import os
-
-from django.core.asgi import get_asgi_application
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'goexplorer.settings')
-
-application = get_asgi_application()
+__all__ = []

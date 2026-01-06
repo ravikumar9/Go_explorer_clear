@@ -4,6 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q
 from .models import Package, PackageDeparture
 from bookings.models import Booking
@@ -83,28 +84,29 @@ def book_package(request, package_id):
         traveler_name = request.POST.get('traveler_name')
         traveler_email = request.POST.get('traveler_email')
         traveler_phone = request.POST.get('traveler_phone')
-        
-        departure = get_object_or_404(PackageDeparture, id=departure_id, package=package)
-        
-        # Check availability
-        if departure.available_slots < num_travelers:
-            messages.error(request, 'Not enough spots available')
-            return redirect('packages:package_detail', package_id=package_id)
-        
-        # Create booking
-        total_amount = float(package.starting_price) * num_travelers
-        booking = Booking.objects.create(
-            user=request.user,
-            booking_type='package',
-            total_amount=total_amount,
-            customer_name=traveler_name or request.user.get_full_name() or request.user.username,
-            customer_email=traveler_email or request.user.email,
-            customer_phone=traveler_phone or getattr(request.user, 'phone', ''),
-        )
-        
-        # Update spot availability
-        departure.available_slots -= num_travelers
-        departure.save()
+
+        with transaction.atomic():
+            departure = PackageDeparture.objects.select_for_update().get(id=departure_id, package=package)
+            
+            # Check availability with a lock to avoid race conditions
+            if departure.available_slots < num_travelers:
+                messages.error(request, 'Not enough spots available')
+                return redirect('packages:package_detail', package_id=package_id)
+            
+            # Create booking
+            total_amount = float(package.starting_price) * num_travelers
+            booking = Booking.objects.create(
+                user=request.user,
+                booking_type='package',
+                total_amount=total_amount,
+                customer_name=traveler_name or request.user.get_full_name() or request.user.username,
+                customer_email=traveler_email or request.user.email,
+                customer_phone=traveler_phone or getattr(request.user, 'phone', ''),
+            )
+            
+            # Update spot availability atomically
+            departure.available_slots -= num_travelers
+            departure.save(update_fields=['available_slots'])
         
         messages.success(request, f'Package booked successfully! Booking ID: {booking.id}')
         return redirect('bookings:booking_detail', booking_id=booking.id)
