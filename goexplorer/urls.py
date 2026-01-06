@@ -25,7 +25,7 @@ urlpatterns = [
     path('api/packages/', include(('packages.urls', 'packages'), namespace='packages-api')),
     path('api/bookings/', include(('bookings.urls', 'bookings'), namespace='bookings-api')),
     path('api/payments/', include(('payments.urls', 'payments'), namespace='payments-api')),
-    path('api/users/', include(('users.urls', 'users'), namespace='users-api')),
+    path('api/users/', include(('users.api_urls', 'users_api'), namespace='users-api')),
 ]
 
 # Serve media files (enable in dev or when SERVE_MEDIA_FILES is true)

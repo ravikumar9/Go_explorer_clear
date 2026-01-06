@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Min, Value, FloatField, Q, DecimalField, F
 from django.db.models.functions import Coalesce
 from datetime import date, datetime, timedelta
@@ -396,6 +397,7 @@ def hotel_detail(request, pk):
     return render(request, 'hotels/hotel_detail.html', context)
 
 
+@csrf_exempt
 def book_hotel(request, pk):
     """Book hotel (POST handler)"""
     hotel_qs = Hotel.objects.prefetch_related('room_types', 'channel_mappings').select_related('city')

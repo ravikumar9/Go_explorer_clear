@@ -362,7 +362,7 @@
                             <i class="fas fa-check-circle"></i> Proceed to Payment
                         </button>
                     {% else %}
-                        <a href="/login/?next={{ request.path }}" class="btn btn-primary btn-book">
+                        <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn btn-primary btn-book">
                             <i class="fas fa-sign-in-alt"></i> Login to Book
                         </a>
                     {% endif %}
