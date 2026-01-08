@@ -267,7 +267,7 @@ def book_bus(request, bus_id):
         schedule.book_seats(len(seat_ids))
         
         messages.success(request, f'Bus booked successfully! Booking ID: {booking.booking_id}')
-        return redirect('bookings:booking_detail', booking_id=booking.booking_id)
+        return redirect(reverse('bookings:booking-detail', kwargs={'booking_id': booking.booking_id}))
     
     except Exception as e:
         messages.error(request, f'Booking failed: {str(e)}')

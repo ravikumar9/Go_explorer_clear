@@ -109,7 +109,7 @@ def book_package(request, package_id):
             departure.save(update_fields=['available_slots'])
         
         messages.success(request, f'Package booked successfully! Booking ID: {booking.booking_id}')
-        return redirect('bookings:booking_detail', booking_id=booking.booking_id)
+        return redirect(reverse('bookings:booking-detail', kwargs={'booking_id': booking.booking_id}))
     
     except Exception as e:
         messages.error(request, f'Booking failed: {str(e)}')
