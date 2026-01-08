@@ -49,6 +49,11 @@
         color: #333;
         font-weight: 500;
     }
+
+    .form-group label .required {
+        color: #dc3545;
+        margin-left: 3px;
+    }
     
     .form-group input {
         width: 100%;
@@ -56,13 +61,19 @@
         border: 1px solid #ddd;
         border-radius: 5px;
         font-size: 14px;
-        transition: border-color 0.3s;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        box-sizing: border-box;
     }
     
-    .form-group input:focus {
+    .form-group input.is-invalid {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+    }
+    
+    .form-group input.is-invalid:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
     }
     
     .login-button {
@@ -146,13 +157,17 @@
             {% csrf_token %}
             
             <div class="form-group">
-                <label for="id_email">Email Address</label>
-                <input type="email" id="id_email" name="email" required placeholder="your@email.com">
+                <label for="id_email">Email Address <span class="required">*</span></label>
+                <input type="email" id="id_email" name="email" required placeholder="your@email.com" class="{% if messages %}is-invalid{% endif %}">
+                <small class="text-muted">Valid email address required</small>
+                <div id="email-error" class="text-danger small" style="display: none;"></div>
             </div>
             
             <div class="form-group">
-                <label for="id_password">Password</label>
-                <input type="password" id="id_password" name="password" required placeholder="Enter your password">
+                <label for="id_password">Password <span class="required">*</span></label>
+                <input type="password" id="id_password" name="password" required placeholder="Enter your password" class="{% if messages %}is-invalid{% endif %}">
+                <small class="text-muted">Case-sensitive password</small>
+                <div id="password-error" class="text-danger small" style="display: none;"></div>
             </div>
             
             <button type="submit" class="login-button">
@@ -165,4 +180,111 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('id_email');
+    const passwordInput = document.getElementById('id_password');
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+    const form = document.querySelector('form');
+
+    // Email validation on blur
+    emailInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        if (!value) {
+            this.classList.remove('is-invalid');
+            emailError.style.display = 'none';
+        } else if (!this.validity.valid) {
+            this.classList.add('is-invalid');
+            emailError.textContent = 'Please enter a valid email address (e.g., user@example.com)';
+            emailError.style.display = 'block';
+        } else {
+            this.classList.remove('is-invalid');
+            emailError.style.display = 'none';
+        }
+    });
+
+    // Email input validation on input
+    emailInput.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid')) {
+            if (this.validity.valid) {
+                this.classList.remove('is-invalid');
+                emailError.style.display = 'none';
+            }
+        }
+    });
+
+    // Password validation on blur
+    passwordInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        if (!value) {
+            this.classList.remove('is-invalid');
+            passwordError.style.display = 'none';
+        } else if (value.length < 1) {
+            this.classList.add('is-invalid');
+            passwordError.textContent = 'Password is required';
+            passwordError.style.display = 'block';
+        } else {
+            this.classList.remove('is-invalid');
+            passwordError.style.display = 'none';
+        }
+    });
+
+    // Password input validation
+    passwordInput.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid')) {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+                passwordError.style.display = 'none';
+            }
+        }
+    });
+
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+
+        // Validate email
+        const emailValue = emailInput.value.trim();
+        if (!emailValue) {
+            emailInput.classList.add('is-invalid');
+            emailError.textContent = 'Email is required';
+            emailError.style.display = 'block';
+            isValid = false;
+        } else if (!emailInput.validity.valid) {
+            emailInput.classList.add('is-invalid');
+            emailError.textContent = 'Please enter a valid email address (e.g., user@example.com)';
+            emailError.style.display = 'block';
+            isValid = false;
+        } else {
+            emailInput.classList.remove('is-invalid');
+            emailError.style.display = 'none';
+        }
+
+        // Validate password
+        const passwordValue = passwordInput.value.trim();
+        if (!passwordValue) {
+            passwordInput.classList.add('is-invalid');
+            passwordError.textContent = 'Password is required';
+            passwordError.style.display = 'block';
+            isValid = false;
+        } else {
+            passwordInput.classList.remove('is-invalid');
+            passwordError.style.display = 'none';
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            // Focus first invalid field
+            if (!emailValue || !emailInput.validity.valid) {
+                emailInput.focus();
+            } else if (!passwordValue) {
+                passwordInput.focus();
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
+

@@ -485,17 +485,30 @@
 
         console.log('[BOOKING] Initializing hotel booking form...');
 
-        // Apply query param values so desktop fields show selected dates after reload/navigation
+        // Read URL params FIRST before any default logic
         const params = new URLSearchParams(window.location.search);
         const qsCheckin = params.get('checkin');
         const qsCheckout = params.get('checkout');
-        if (checkinInput && qsCheckin) {
+        
+        // Apply URL param values if present
+        if (qsCheckin && checkinInput) {
             checkinInput.value = qsCheckin;
             console.log('[BOOKING] Set checkin from URL:', qsCheckin);
+        } else if (checkinInput && !checkinInput.value) {
+            // Only set default if no URL param AND field is empty
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            checkinInput.value = tomorrow.toISOString().split('T')[0];
         }
-        if (checkoutInput && qsCheckout) {
+        
+        if (qsCheckout && checkoutInput) {
             checkoutInput.value = qsCheckout;
             console.log('[BOOKING] Set checkout from URL:', qsCheckout);
+        } else if (checkoutInput && !checkoutInput.value) {
+            // Only set default if no URL param AND field is empty
+            const dayAfter = new Date();
+            dayAfter.setDate(dayAfter.getDate() + 2);
+            checkoutInput.value = dayAfter.toISOString().split('T')[0];
         }
 
         // Gallery thumbnails click handler

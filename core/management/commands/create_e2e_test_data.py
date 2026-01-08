@@ -61,11 +61,11 @@ class Command(BaseCommand):
             self.print_summary(cities, operators, buses, routes)
             
             self.stdout.write(self.style.SUCCESS('\n' + '='*70))
-            self.stdout.write(self.style.SUCCESS('✓ TEST DATA CREATED SUCCESSFULLY'))
+            self.stdout.write(self.style.SUCCESS('[OK] TEST DATA CREATED SUCCESSFULLY'))
             self.stdout.write(self.style.SUCCESS('='*70 + '\n'))
 
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f'\n✗ Error creating test data: {str(e)}\n'))
+            self.stdout.write(self.style.ERROR(f'\nX Error creating test data: {str(e)}\n'))
             import traceback
             traceback.print_exc()
             sys.exit(1)
@@ -81,7 +81,7 @@ class Command(BaseCommand):
             BusRoute.objects.all().delete()
             Bus.objects.all().delete()
             BusOperator.objects.all().delete()
-            self.stdout.write(self.style.SUCCESS('✓ Cleaned existing data'))
+            self.stdout.write(self.style.SUCCESS('[OK] Cleaned existing data'))
         except Exception as e:
             self.stdout.write(self.style.WARNING(f'Warning during cleanup: {e}'))
 
@@ -102,7 +102,7 @@ class Command(BaseCommand):
             city, created = City.objects.get_or_create(code=data['code'], defaults=data)
             cities[data['code']] = city
             status = 'Created' if created else 'Exists'
-            self.stdout.write(f"  ✓ {city.name} ({status})")
+            self.stdout.write(f"  [OK] {city.name} ({status})")
         
         return cities
 
@@ -138,7 +138,7 @@ class Command(BaseCommand):
             )
             operators[data['name']] = op
             status = 'Created' if created else 'Exists'
-            self.stdout.write(f"  ✓ {op.name} - {op.contact_phone} ({status})")
+            self.stdout.write(f"  [OK] {op.name} - {op.contact_phone} ({status})")
         
         return operators
 
@@ -208,7 +208,7 @@ class Command(BaseCommand):
             buses.append(bus)
             status = 'Created' if created else 'Exists'
             self.stdout.write(
-                f"  ✓ {bus.bus_number} - {bus.bus_name} ({data['bus_type']}) - "
+                f"  [OK] {bus.bus_number} - {bus.bus_name} ({data['bus_type']}) - "
                 f"{bus.total_seats} seats ({status})"
             )
         
@@ -306,8 +306,8 @@ class Command(BaseCommand):
             routes.append(route)
             status = 'Created' if created else 'Exists'
             self.stdout.write(
-                f"  ✓ {data['source']} → {data['dest']} | "
-                f"{data['departure']}-{data['arrival']} | ₹{data['base_fare']} ({status})"
+                f"  [OK] {data['source']} -> {data['dest']} | "
+                f"{data['departure']}-{data['arrival']} | Rs.{data['base_fare']} ({status})"
             )
         
         return routes
@@ -407,40 +407,104 @@ class Command(BaseCommand):
                 if created:
                     count += 1
         
-        self.stdout.write(f"  ✓ Created {count} boarding/dropping points")
+        self.stdout.write(f"  [OK] Created {count} boarding/dropping points")
 
     def create_seat_layouts(self, buses):
-        """Create seat layouts for all buses"""
+        """Create seat layouts for all buses based on bus_type"""
         self.stdout.write('\n6. Creating Seat Layouts...')
         
         total_created = 0
         for bus in buses:
             seat_count = 0
-            for seat_num in range(1, bus.total_seats + 1):
-                row = (seat_num - 1) // 4 + 1
-                col = (seat_num - 1) % 4 + 1
-                
-                # Reserve every 5th seat for ladies
-                reserved_for = 'ladies' if seat_num % 5 == 0 else 'general'
-                
-                _, created = SeatLayout.objects.get_or_create(
-                    bus=bus,
-                    seat_number=f'{seat_num}',
-                    defaults={
-                        'seat_type': 'sleeper_lower' if seat_num <= bus.total_seats // 2 else 'sleeper_upper',
-                        'row': row,
-                        'column': col,
-                        'deck': 1 if seat_num <= bus.total_seats // 2 else 2,
-                        'reserved_for': reserved_for,
-                    }
-                )
-                if created:
-                    seat_count += 1
             
-            self.stdout.write(f"  ✓ {bus.bus_number} - Created {seat_count} seats")
+            # Determine layout based on bus_type
+            if bus.bus_type in ['seater', 'ac_seater']:
+                # SEATER: 3+2 layout (5 seats per row)
+                # Row configuration: [Window][Aisle][Window] | [Aisle][Window]
+                seats_per_row = 5
+                for seat_num in range(1, bus.total_seats + 1):
+                    row = ((seat_num - 1) // seats_per_row) + 1
+                    col = ((seat_num - 1) % seats_per_row) + 1
+                    
+                    # Reserve every 5th seat for ladies
+                    reserved_for = 'ladies' if seat_num % 5 == 0 else 'general'
+                    
+                    _, created = SeatLayout.objects.get_or_create(
+                        bus=bus,
+                        seat_number=f'{seat_num}',
+                        defaults={
+                            'seat_type': 'seater',
+                            'row': row,
+                            'column': col,
+                            'deck': 1,
+                            'reserved_for': reserved_for,
+                        }
+                    )
+                    if created:
+                        seat_count += 1
+                
+            elif bus.bus_type in ['sleeper', 'ac_sleeper', 'volvo']:
+                # SLEEPER: Lower deck + Upper deck
+                # Split seats: 50% lower, 50% upper
+                half = bus.total_seats // 2
+                
+                for seat_num in range(1, bus.total_seats + 1):
+                    if seat_num <= half:
+                        # Lower deck
+                        deck = 1
+                        seat_type = 'sleeper_lower'
+                        row = ((seat_num - 1) // 2) + 1
+                        col = ((seat_num - 1) % 2) + 1
+                    else:
+                        # Upper deck
+                        deck = 2
+                        seat_type = 'sleeper_upper'
+                        adjusted = seat_num - half
+                        row = ((adjusted - 1) // 2) + 1
+                        col = ((adjusted - 1) % 2) + 1
+                    
+                    # Reserve every 5th seat for ladies
+                    reserved_for = 'ladies' if seat_num % 5 == 0 else 'general'
+                    
+                    _, created = SeatLayout.objects.get_or_create(
+                        bus=bus,
+                        seat_number=f'{seat_num}',
+                        defaults={
+                            'seat_type': seat_type,
+                            'row': row,
+                            'column': col,
+                            'deck': deck,
+                            'reserved_for': reserved_for,
+                        }
+                    )
+                    if created:
+                        seat_count += 1
+                        
+            else:
+                # Default fallback
+                for seat_num in range(1, bus.total_seats + 1):
+                    row = ((seat_num - 1) // 4) + 1
+                    col = ((seat_num - 1) % 4) + 1
+                    reserved_for = 'ladies' if seat_num % 5 == 0 else 'general'
+                    
+                    _, created = SeatLayout.objects.get_or_create(
+                        bus=bus,
+                        seat_number=f'{seat_num}',
+                        defaults={
+                            'seat_type': 'seater',
+                            'row': row,
+                            'column': col,
+                            'deck': 1,
+                            'reserved_for': reserved_for,
+                        }
+                    )
+                    if created:
+                        seat_count += 1
+            
+            self.stdout.write(f"  [OK] {bus.bus_number} ({bus.bus_type}) - Created {seat_count} seats")
             total_created += seat_count
         
-        self.stdout.write(f"  ✓ Total seats created: {total_created}")
+        self.stdout.write(f"  [OK] Total seats created: {total_created}")
 
     def create_schedules(self, routes):
         """Create schedules for next 30 days"""
@@ -469,12 +533,12 @@ class Command(BaseCommand):
                     schedule_count += 1
             
             self.stdout.write(
-                f"  ✓ {route.source_city.code}→{route.destination_city.code} | "
+                f"  [OK] {route.source_city.code}->{route.destination_city.code} | "
                 f"Created {schedule_count} schedules"
             )
             total_created += schedule_count
         
-        self.stdout.write(f"  ✓ Total schedules created: {total_created}")
+        self.stdout.write(f"  [OK] Total schedules created: {total_created}")
 
     def print_summary(self, cities, operators, buses, routes):
         """Print data summary"""

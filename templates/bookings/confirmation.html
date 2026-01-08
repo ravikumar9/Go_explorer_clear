@@ -42,6 +42,17 @@
                     <p class="mb-2"><strong>Check-out:</strong> {{ booking.hotel_details.check_out|date:"d M Y" }}</p>
                     <p class="mb-2"><strong>Nights:</strong> {{ booking.hotel_details.total_nights }}</p>
                     <p class="mb-2"><strong>Rooms:</strong> {{ booking.hotel_details.number_of_rooms }}</p>
+                    {% elif booking.bus_details %}
+                    <hr>
+                    <h6>Bus Booking Details</h6>
+                    <p class="mb-2"><strong>Bus:</strong> {{ booking.bus_details.bus_schedule.route.bus.bus_name }}</p>
+                    <p class="mb-2"><strong>Operator:</strong> {{ booking.bus_details.bus_schedule.route.bus.operator.name }}</p>
+                    <p class="mb-2"><strong>Route:</strong> {{ booking.bus_details.bus_schedule.route.source_city.name }} → {{ booking.bus_details.bus_schedule.route.destination_city.name }}</p>
+                    <p class="mb-2"><strong>Travel Date:</strong> {{ booking.bus_details.bus_schedule.date|date:"d M Y" }}</p>
+                    <p class="mb-2"><strong>Departure:</strong> {{ booking.bus_details.bus_schedule.route.departure_time|time:"H:i" }}</p>
+                    <p class="mb-2"><strong>Seats:</strong> {% for seat in booking.bus_details.bus_booking_seats.all %}{{ seat.seat.seat_number }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                    <p class="mb-2"><strong>Boarding:</strong> {{ booking.bus_details.boarding_point.name }} ({{ booking.bus_details.boarding_point.pickup_time|time:"H:i" }})</p>
+                    <p class="mb-2"><strong>Dropping:</strong> {{ booking.bus_details.dropping_point.name }} ({{ booking.bus_details.dropping_point.drop_time|time:"H:i" }})</p>
                     {% endif %}
                 </div>
             </div>
