@@ -321,4 +321,11 @@ class WhatsAppBookingHandlerTest(TestCase):
             
             self.assertIsNotNone(response)
             self.assertIn('message', response)
-            print(f"✓ {command}: {response['message'][:50]}...")
+            # Clean response message of any unicode characters for stdout
+            msg_text = response['message'][:50] if 'message' in response else 'N/A'
+            try:
+                msg_text = msg_text.encode('ascii', 'ignore').decode('ascii')
+            except:
+                msg_text = 'N/A'
+            # Don't print in tests to avoid encoding issues
+            # print(f"[+] {command}: {msg_text}...")

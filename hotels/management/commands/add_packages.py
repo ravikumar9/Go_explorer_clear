@@ -200,11 +200,11 @@ class Command(BaseCommand):
                         file_content = ContentFile(content)
                         filename = f"{slugify(pkg_data['name'])}.jpg"
                         package.image.save(filename, file_content, save=True)
-                        self.stdout.write(f"✓ Added image for {pkg_data['name']}")
+                        self.stdout.write(f"[+] Added image for {pkg_data['name']}")
                     except Exception as e:
-                        self.stdout.write(self.style.WARNING(f"⚠ Could not save image for {pkg_data['name']}: {e}"))
+                        self.stdout.write(self.style.WARNING(f"[!] Could not save image for {pkg_data['name']}: {e}"))
                 else:
-                    self.stdout.write(self.style.WARNING(f"⚠ No image available for {pkg_data['name']}"))
+                    self.stdout.write(self.style.WARNING(f"[!] No image available for {pkg_data['name']}"))
 
                 # Create sample itinerary
                 for day in range(1, pkg_data['duration_days'] + 1):
@@ -237,7 +237,7 @@ class Command(BaseCommand):
                     )
 
                 self.stdout.write(self.style.SUCCESS(
-                    f'✓ Created package: {pkg_data["name"]} with departures'
+                    f'[+] Created package: {pkg_data["name"]} with departures'
                 ))
 
         self.stdout.write(self.style.SUCCESS('Successfully added all tour packages with images'))

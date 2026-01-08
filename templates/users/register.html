@@ -203,8 +203,8 @@
             </div>
             
             <div class="form-group">
-                <label for="id_phone">Phone Number (Optional)</label>
-                <input type="tel" id="id_phone" name="phone" placeholder="+91 XXXXX XXXXX">
+                <label for="id_phone">Phone Number <span style="color:#dc3545">*</span></label>
+                <input type="tel" id="id_phone" name="phone" required pattern="^[0-9]{10,15}$" placeholder="Enter 10-15 digit mobile number">
                 {% if form.phone.errors %}
                 <ul class="error-list">
                     {% for error in form.phone.errors %}

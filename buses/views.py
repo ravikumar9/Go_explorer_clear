@@ -17,8 +17,9 @@ def bus_list(request):
     buses = Bus.objects.filter(operator__isnull=False).select_related('operator')
     
     # Search by source and destination cities
-    source_city = request.GET.get('source')
-    destination_city = request.GET.get('destination')
+    # Accept both legacy and current query param keys
+    source_city = request.GET.get('source_city') or request.GET.get('source')
+    destination_city = request.GET.get('dest_city') or request.GET.get('destination')
     travel_date = request.GET.get('travel_date')
     
     # Additional filters
@@ -132,8 +133,26 @@ def bus_detail(request, bus_id):
     if not selected_route:
         selected_route = bus.routes.first()
 
-    boarding_points = selected_route.boarding_points.all() if selected_route else []
-    dropping_points = selected_route.dropping_points.all() if selected_route else []
+    boarding_points = list(selected_route.boarding_points.all()) if selected_route else []
+    dropping_points = list(selected_route.dropping_points.all()) if selected_route else []
+
+    # Fallback so UI never shows "No boarding/dropping points configured"
+    # Create lightweight stand-ins using route cities/times (non-persistent)
+    class _Point:
+        def __init__(self, pid, name, t):
+            self.id = pid
+            self.name = name
+            self.pickup_time = t
+            self.drop_time = t
+    if selected_route:
+        if not boarding_points:
+            boarding_points = [
+                _Point('__source__', f"{selected_route.source_city.name} Main Pickup", selected_route.departure_time)
+            ]
+        if not dropping_points:
+            dropping_points = [
+                _Point('__dest__', f"{selected_route.destination_city.name} Drop Point", selected_route.arrival_time)
+            ]
     conv_fee_pct = 2  # percent convenience fee (placeholder)
     gst_pct = 5       # percent GST on base + fee (placeholder)
     
@@ -246,10 +265,30 @@ def book_bus(request, bus_id):
         )
         
         # Create bus booking details
+        # Resolve display text for boarding/dropping (IDs may be fallback tokens)
+        try:
+            from .models import BoardingPoint as BP, DroppingPoint as DP
+            if boarding_point and boarding_point not in ['__source__', '__dest__']:
+                bp_obj = BP.objects.filter(id=boarding_point).first()
+                boarding_point_text = bp_obj.name if bp_obj else ''
+            else:
+                boarding_point_text = f"{route.source_city.name} ({route.departure_time.strftime('%H:%M')})"
+            if dropping_point and dropping_point not in ['__source__', '__dest__']:
+                dp_obj = DP.objects.filter(id=dropping_point).first()
+                dropping_point_text = dp_obj.name if dp_obj else ''
+            else:
+                dropping_point_text = f"{route.destination_city.name} ({route.arrival_time.strftime('%H:%M')})"
+        except Exception:
+            boarding_point_text = ''
+            dropping_point_text = ''
+
         bus_booking = BusBooking.objects.create(
             booking=booking,
             bus_schedule=schedule,
+            bus_route=route,
             journey_date=date_obj,
+            boarding_point=boarding_point_text,
+            dropping_point=dropping_point_text,
         )
         
         # Create seat bookings

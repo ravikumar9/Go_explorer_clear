@@ -1,0 +1,11 @@
+<h1>Your Bookings</h1>
+<ul>
+  {% for b in object_list %}
+    <li>
+      {{ b.customer_name }} — {{ b.booking_type }} — {{ b.status }} — {{ b.total_amount }}
+      [<a href="{% url 'bookings:booking-detail' b.booking_id %}">View</a>]
+    </li>
+  {% empty %}
+    <li>No bookings found.</li>
+  {% endfor %}
+</ul>

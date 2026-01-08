@@ -35,6 +35,15 @@ class UserRegistrationForm(forms.ModelForm):
         
         if User.objects.filter(email=cleaned_data.get('email')).exists():
             raise forms.ValidationError("Email already registered")
+
+        # Phone is mandatory: numeric and valid length
+        phone = cleaned_data.get('phone')
+        if not phone:
+            raise forms.ValidationError("Mobile number is required")
+        if not str(phone).isdigit():
+            raise forms.ValidationError("Mobile number must be numeric")
+        if len(str(phone)) < 10 or len(str(phone)) > 15:
+            raise forms.ValidationError("Mobile number must be 10-15 digits long")
         
         return cleaned_data
 

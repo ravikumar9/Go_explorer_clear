@@ -380,7 +380,7 @@
                                 <i class="fas fa-check-circle"></i> Book Now
                             </button>
                         {% else %}
-                            <a href="/login/?next={{ request.path }}" class="btn btn-primary w-100">
+                            <a href="{% url 'users:login' %}?next={{ request.path|urlencode }}" class="btn btn-primary w-100">
                                 <i class="fas fa-sign-in-alt"></i> Login to Book
                             </a>
                         {% endif %}
@@ -443,11 +443,11 @@
             const selected = getSelectedSeats();
             if (selected.length === 0) {
                 selectedSeatsDisplay.innerHTML = '<span class="text-muted">No seats selected</span>';
-                bookNowBtn.disabled = true;
+                if (bookNowBtn) bookNowBtn.disabled = true;
             } else {
                 const seatNumbers = selected.map(s => s.number).join(', ');
                 selectedSeatsDisplay.textContent = `${selected.length} seat(s): ${seatNumbers}`;
-                bookNowBtn.disabled = false;
+                if (bookNowBtn) bookNowBtn.disabled = false;
             }
             updatePricing();
         }
@@ -481,10 +481,10 @@
 
             if (hasInvalidSeat) {
                 ladiesWarning.classList.remove('d-none');
-                bookNowBtn.disabled = true;
+                if (bookNowBtn) bookNowBtn.disabled = true;
             } else {
                 ladiesWarning.classList.add('d-none');
-                bookNowBtn.disabled = selected.length === 0;
+                if (bookNowBtn) bookNowBtn.disabled = selected.length === 0;
             }
         }
 

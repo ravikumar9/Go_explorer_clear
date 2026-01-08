@@ -198,8 +198,8 @@
         <div class="card-body">
             <form method="get" action="." class="row g-3" id="filters-form">
                 <!-- Keep search parameters -->
-                <input type="hidden" name="source" value="{{ selected_source|default:'' }}">
-                <input type="hidden" name="destination" value="{{ selected_destination|default:'' }}">
+                <input type="hidden" name="source_city" value="{{ selected_source|default:'' }}">
+                <input type="hidden" name="dest_city" value="{{ selected_destination|default:'' }}">
                 <input type="hidden" name="travel_date" value="{{ selected_date|default:'' }}">
                 
                 <div class="col-md-2">
