@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, render, redirect
-from django.views.generic import DetailView
+from django.views.generic import ListView, DetailView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
@@ -15,31 +15,14 @@ try:
 except Exception:
     razorpay = None
 
-class BookingListView(APIView):
-    renderer_classes = [JSONRenderer, TemplateHTMLRenderer]
+class BookingListView(LoginRequiredMixin, ListView):
+    model = Booking
+    template_name = 'bookings/booking_list.html'
+    context_object_name = 'object_list'
+    paginate_by = 10
 
-    def get(self, request):
-        if request.user.is_authenticated:
-            queryset = Booking.objects.filter(user=request.user).order_by('-created_at')
-        else:
-            queryset = Booking.objects.none()
-
-        # When HTML is requested, render the template for browser use
-        if getattr(request, 'accepted_renderer', None) and request.accepted_renderer.format == 'html':
-            return Response({'object_list': queryset}, template_name='bookings/booking_list.html')
-
-        # Default to JSON response
-        data = [
-            {
-                'booking_id': str(b.booking_id),
-                'booking_type': b.booking_type,
-                'status': b.status,
-                'total_amount': float(b.total_amount),
-                'customer_name': b.customer_name,
-            }
-            for b in queryset
-        ]
-        return Response(data)
+    def get_queryset(self):
+        return Booking.objects.filter(user=self.request.user).order_by('-created_at')
 
 class BookingDetailView(LoginRequiredMixin, DetailView):
     model = Booking
