@@ -1,17 +1,28 @@
 [Unit]
 Description=gunicorn daemon for GoExplorer (dev)
 After=network.target
+Before=nginx.service
 
 [Service]
+Type=notify
 User=deployer
 Group=www-data
 WorkingDirectory=/home/deployer/goexplorer
 EnvironmentFile=/home/deployer/goexplorer/.env
+ExecStartPre=/bin/mkdir -p /run/gunicorn-goexplorer
+ExecStartPre=/bin/chown deployer:www-data /run/gunicorn-goexplorer
 ExecStart=/home/deployer/goexplorer/.venv/bin/gunicorn \
     --access-logfile - \
+    --error-logfile - \
     --workers 3 \
-    --bind unix:/run/gunicorn-goexplorer.sock \
+    --worker-class sync \
+    --timeout 30 \
+    --bind unix:/run/gunicorn-goexplorer/goexplorer.sock \
+    --umask 0007 \
     goexplorer.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
