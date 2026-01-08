@@ -41,15 +41,23 @@
     }
 
     .room-card {
-        border: 1px solid #ddd;
+        border: 2px solid #ddd;
         border-radius: 8px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
         transition: all 0.3s ease;
+        cursor: pointer;
     }
 
     .room-card:hover {
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #FF6B35;
+    }
+
+    .room-card.selected {
+        border-color: #FF6B35;
+        background-color: #fff5f0;
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
     }
 
     .room-price {
@@ -380,6 +388,15 @@
     
     function selectRoom(roomId, roomName, price) {
         document.getElementById('room_type').value = roomId;
+        
+        // Remove selected class from all room cards
+        document.querySelectorAll('.room-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Add selected class to clicked room card
+        event.target.closest('.room-card').classList.add('selected');
+        
         updatePrice();
     }
 
