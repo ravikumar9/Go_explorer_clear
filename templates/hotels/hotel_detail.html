@@ -539,9 +539,12 @@
         // Check-in date initialization
         if (checkinInput) {
             checkinInput.min = todayStr;
-            if (!checkinInput.value) {
+            // Only set default if no value already present from server
+            if (!checkinInput.value || checkinInput.value === '') {
                 checkinInput.value = todayStr;
                 console.log('[BOOKING] Set default checkin to today:', todayStr);
+            } else {
+                console.log('[BOOKING] Keeping server-provided checkin:', checkinInput.value);
             }
             
             // Multiple events to ensure picker opens
@@ -579,9 +582,12 @@
         // Check-out date initialization
         if (checkoutInput) {
             checkoutInput.min = tomorrowStr;
-            if (!checkoutInput.value) {
+            // Only set default if no value already present from server
+            if (!checkoutInput.value || checkoutInput.value === '') {
                 checkoutInput.value = tomorrowStr;
                 console.log('[BOOKING] Set default checkout to tomorrow:', tomorrowStr);
+            } else {
+                console.log('[BOOKING] Keeping server-provided checkout:', checkoutInput.value);
             }
             
             // Multiple events to ensure picker opens

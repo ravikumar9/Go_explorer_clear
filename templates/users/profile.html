@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - GoExplorer{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">My Profile</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="200">Email:</th>
+                            <td>{{ user.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>First Name:</th>
+                            <td>{{ user.first_name|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Name:</th>
+                            <td>{{ user.last_name|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Phone:</th>
+                            <td>{{ user.phone|default:"Not provided" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">My Bookings</h5>
+                </div>
+                <div class="card-body">
+                    {% if bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in bookings %}
+                                    <tr>
+                                        <td><small>{{ booking.booking_id|truncatechars:10 }}</small></td>
+                                        <td>{{ booking.get_booking_type_display }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if booking.status == 'confirmed' %}bg-success
+                                                {% elif booking.status == 'pending' %}bg-warning
+                                                {% elif booking.status == 'cancelled' %}bg-danger
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ booking.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>₹{{ booking.total_amount|floatformat:"0" }}</td>
+                                        <td>{{ booking.created_at|date:"d M Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'bookings:booking-detail' booking.booking_id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No bookings yet. <a href="{% url 'buses:bus_list' %}">Search buses</a> or <a href="{% url 'hotels:hotel_list' %}">browse hotels</a>.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle" style="font-size: 100px; color: #667eea;"></i>
+                    </div>
+                    <h5>{{ user.first_name }} {{ user.last_name }}</h5>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <a href="{% url 'users:logout' %}" class="btn btn-outline-danger btn-sm">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

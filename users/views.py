@@ -59,7 +59,7 @@ class UserLoginForm(forms.Form):
 def register(request):
     """User registration view"""
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('core:home')
     
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -90,7 +90,7 @@ def register(request):
 def login_view(request):
     """User login view"""
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('core:home')
     
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
@@ -103,7 +103,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'Welcome back, {user.first_name or user.email}!')
-                next_url = request.GET.get('next', 'home')
+                next_url = request.GET.get('next', 'core:home')
                 return redirect(next_url)
             else:
                 messages.error(request, 'Invalid email or password')
@@ -114,12 +114,21 @@ def login_view(request):
 
 
 @login_required(login_url='users:login')
-@require_http_methods(["POST"])
 def logout_view(request):
     """User logout view"""
     logout(request)
     messages.success(request, 'Logged out successfully!')
-    return redirect('home')
+    return redirect('core:home')
+
+
+@login_required(login_url='users:login')
+def user_profile(request):
+    """User profile page with bookings"""
+    from bookings.models import Booking
+    bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'users/profile.html', {
+        'bookings': bookings
+    })
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
