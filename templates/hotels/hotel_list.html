@@ -3,324 +3,66 @@
 
 {% block title %}Hotels - GoExplorer{% endblock %}
 
-{% block extra_css %}
-<style>
-    .hero-search {
-        background: linear-gradient(135deg, #FF6B35, #004E89);
-        color: white;
-        padding: 3rem 0;
-        margin-bottom: 3rem;
-    }
-
-    .search-form {
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .hotel-card {
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        overflow: hidden;
-    }
-
-    .hotel-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    }
-
-    .hotel-image {
-        height: 250px;
-        overflow: hidden;
-        background: #e8f4f8;
-    }
-
-    .hotel-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .rating {
-        display: inline-block;
-        background: #FF6B35;
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .price {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #FF6B35;
-    }
-
-    .amenities {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin: 1rem 0;
-    }
-
-    .amenity-badge {
-        background: #e8f4f8;
-        color: #004E89;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-    }
-
-    /* Make date inputs fully clickable */
-    .search-form input[type="date"],
-    .search-form input[type="number"] {
-        cursor: pointer;
-        color: #212529;
-        background-color: #fff;
-    }
-
-    .search-form input[type="date"]::-webkit-calendar-picker-indicator {
-        cursor: pointer;
-    }
-
-    .search-form input[type="date"]::-webkit-datetime-edit,
-    .search-form input[type="date"]::-webkit-input-placeholder {
-        color: #212529;
-        opacity: 1;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<!-- Hero Section -->
-<div class="hero-search">
-    <div class="container">
-        <h1 class="mb-4"><i class="fas fa-hotel"></i> Find Your Perfect Hotel</h1>
-        <p class="lead mb-4">Search and book hotels across India</p>
-    </div>
-</div>
+<div class="container my-5">
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <select name="city_id" class="form-select">
+                <option value="">Select City</option>
+                {% for city in cities %}
+                <option value="{{ city.id }}"
+                        {% if selected_city == city.id|stringformat:'s' %}selected{% endif %}>
+                    {{ city.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
 
-<!-- Search Form -->
-<div class="container mb-5">
-    <div class="search-form">
-        <form method="get" action="." class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label for="city_id" class="form-label">City</label>
-                <select id="city_id" name="city_id" class="form-select">
-                    <option value="">Select a city</option>
-                    {% for city in cities %}
-                        <option value="{{ city.id }}" {% if selected_city|slugify == city.id|slugify %}selected{% endif %}>
-                            {{ city.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label for="checkin" class="form-label">Check-in</label>
-                <input type="date" id="checkin" name="checkin" class="form-control" value="{{ selected_checkin }}">
-            </div>
-            <div class="col-md-2">
-                <label for="checkout" class="form-label">Check-out</label>
-                <input type="date" id="checkout" name="checkout" class="form-control" value="{{ selected_checkout }}">
-            </div>
-            <div class="col-md-2">
-                <label for="guests" class="form-label">Guests</label>
-                <input type="number" id="guests" name="guests" class="form-control" min="1" value="{{ selected_guests|default:1 }}">
-            </div>
-            <div class="col-md-3">
-                <label for="sort" class="form-label">Sort</label>
-                <select id="sort" name="sort" class="form-select">
-                    <option value="">Recommended</option>
-                    <option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
-                    <option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
-                    <option value="rating_desc" {% if selected_sort == 'rating_desc' %}selected{% endif %}>Rating: High to Low</option>
-                    <option value="rating_asc" {% if selected_sort == 'rating_asc' %}selected{% endif %}>Rating: Low to High</option>
-                </select>
-            </div>
+        <div class="col-md-2">
+            <input type="date" name="checkin" class="form-control"
+                   value="{{ selected_checkin|default:'' }}">
+        </div>
 
-            <div class="col-md-2">
-                <label for="price_min" class="form-label">Min Price</label>
-                <input type="number" id="price_min" name="price_min" class="form-control" min="0" step="500" value="{{ selected_price_min }}" placeholder="e.g. 1000">
-            </div>
-            <div class="col-md-2">
-                <label for="price_max" class="form-label">Max Price</label>
-                <input type="number" id="price_max" name="price_max" class="form-control" min="0" step="500" value="{{ selected_price_max }}" placeholder="e.g. 5000">
-            </div>
-            <div class="col-md-2">
-                <label for="star_rating" class="form-label">Star Rating</label>
-                <select id="star_rating" name="star_rating" class="form-select">
-                    <option value="">Any</option>
-                    {% for i in "12345" %}
-                        <option value="{{ i }}" {% if selected_star_rating == i|stringformat:'s' %}selected{% endif %}>{{ i }} Star</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label>&nbsp;</label>
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-search"></i> Search Hotels
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+        <div class="col-md-2">
+            <input type="date" name="checkout" class="form-control"
+                   value="{{ selected_checkout|default:'' }}">
+        </div>
 
-<!-- Hotels List -->
-<div class="container mb-5">
+        <div class="col-md-2">
+            <input type="number" name="guests" class="form-control"
+                   min="1" value="{{ selected_guests|default:1 }}">
+        </div>
+
+        <div class="col-md-3">
+            <button class="btn btn-primary w-100">
+                Search Hotels
+            </button>
+        </div>
+    </form>
+
     {% if hotels %}
-        <h2 class="mb-4">{{ hotels|length }} Hotels Found</h2>
-        <div class="row g-4">
-            {% for hotel in hotels %}
-                <div class="col-md-6 col-lg-4">
-                    <div class="hotel-card h-100">
-                        <div class="hotel-image">
-                            {% if hotel.primary_image_url %}
-                                <img src="{{ hotel.primary_image_url }}" loading="lazy" style="object-fit: cover; aspect-ratio: 16/9;" 
-                                     alt="{{ hotel.name }}"
-                                     onerror="this.src='https://via.placeholder.com/400x250?text=Hotel+Image'">
-                            {% else %}
-                                <img src="https://via.placeholder.com/400x250?text={{ hotel.name|urlencode }}" 
-                                     alt="{{ hotel.name }}"
-                                     onerror="this.src='https://via.placeholder.com/400x250?text=Hotel+Image'">
-                            {% endif %}
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            <div class="mb-2">
-                                <span class="rating">
-                                    <i class="fas fa-star"></i> {{ hotel.review_rating }}/5
-                                </span>
-                            </div>
-                            <h5 class="card-title">{{ hotel.name }}</h5>
-                            <p class="text-muted small mb-2">
-                                <i class="fas fa-map-marker-alt"></i> {{ hotel.city.name }}
-                            </p>
-                            <p class="text-muted small mb-3">{{ hotel.description|truncatewords:15 }}</p>
-                            
-                            <div class="amenities">
-                                {% if hotel.has_wifi %}
-                                    <span class="amenity-badge"><i class="fas fa-wifi"></i> WiFi</span>
-                                {% endif %}
-                                {% if hotel.has_pool %}
-                                    <span class="amenity-badge"><i class="fas fa-water"></i> Pool</span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mt-auto">
-                                {% if hotel.availability_snapshot %}
-                                    <p class="text-success small mb-1">
-                                        <i class="fas fa-check-circle"></i>
-                                        {{ hotel.availability_snapshot.available_rooms|default:"Availability updated" }} rooms available
-                                    </p>
-                                    {% if hotel.availability_snapshot.rate %}
-                                        <p class="price mb-1">₹{{ hotel.availability_snapshot.rate|floatformat:"0" }}/night</p>
-                                    {% endif %}
-                                {% elif hotel.min_price and hotel.min_price > 0 %}
-                                    <p class="price mb-3">₹{{ hotel.min_price|floatformat:"0" }}/night</p>
-                                {% elif hotel.room_types.first %}
-                                    <p class="price mb-3">₹{{ hotel.room_types.first.base_price|floatformat:"0" }}/night</p>
-                                {% else %}
-                                    <p class="price mb-3">Price on request</p>
-                                {% endif %}
-                                {% if hotel.availability_error %}
-                                    <p class="text-warning small mb-2">{{ hotel.availability_error }}</p>
-                                {% endif %}
-                                {% with qs=request.GET.urlencode %}
-                                    <a href="{% url 'hotels:hotel_detail' hotel.id %}{% if qs %}?{{ qs }}{% endif %}" class="btn btn-primary w-100">
-                                        View Details & Book
-                                    </a>
-                                {% endwith %}
-                            </div>
-                        </div>
-                    </div>
+    <div class="row g-4">
+        {% for hotel in hotels %}
+        <div class="col-md-4">
+            <div class="card h-100">
+                <img src="{{ hotel.primary_image_url|default:'https://via.placeholder.com/400x250' }}"
+                     class="card-img-top" alt="{{ hotel.name }}">
+                <div class="card-body d-flex flex-column">
+                    <h5>{{ hotel.name }}</h5>
+                    <p class="text-muted">{{ hotel.city.name }}</p>
+                    <a href="{% url 'hotels:hotel_detail' hotel.id %}?{{ request.GET.urlencode }}"
+                       class="btn btn-primary mt-auto">
+                        View & Book
+                    </a>
                 </div>
-            {% endfor %}
+            </div>
         </div>
-    {% elif request.GET %}
-        <div class="alert alert-info" role="alert">
-            <i class="fas fa-info-circle"></i> No hotels found for your search. Try different dates or city.
-        </div>
+        {% endfor %}
+    </div>
     {% else %}
-        <div class="alert alert-secondary" role="alert">
-            <i class="fas fa-search"></i> Use the search form above to find hotels.
-        </div>
+    <div class="alert alert-info">
+        No hotels found
+    </div>
     {% endif %}
 </div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Set minimum checkout date
-    document.getElementById('checkin').addEventListener('change', function() {
-        const checkin = new Date(this.value);
-        checkin.setDate(checkin.getDate() + 1);
-        const checkoutInput = document.getElementById('checkout');
-        const minDate = checkin.toISOString().split('T')[0];
-        checkoutInput.min = minDate;
-        if (!checkoutInput.value || new Date(checkoutInput.value) <= new Date(this.value)) {
-            checkoutInput.value = minDate;
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-        const checkinInput = document.getElementById('checkin');
-        const checkoutInput = document.getElementById('checkout');
-
-        // Ensure query params repopulate date inputs on desktop
-        const params = new URLSearchParams(window.location.search);
-        const qsCheckin = params.get('checkin');
-        const qsCheckout = params.get('checkout');
-        if (checkinInput && qsCheckin) {
-            checkinInput.value = qsCheckin;
-        }
-        if (checkoutInput && qsCheckout) {
-            checkoutInput.value = qsCheckout;
-        }
-
-        const openPicker = (input) => {
-            if (input && typeof input.showPicker === 'function') {
-                input.showPicker();
-            }
-        };
-
-        if (checkinInput) {
-            checkinInput.min = todayStr;
-            if (!checkinInput.value) {
-                checkinInput.value = todayStr;
-            }
-            checkinInput.addEventListener('click', () => openPicker(checkinInput));
-            checkinInput.addEventListener('focus', () => openPicker(checkinInput));
-            const cParent = checkinInput.parentElement;
-            if (cParent) {
-                cParent.style.cursor = 'pointer';
-                cParent.addEventListener('click', (e) => { if (e.target !== checkinInput) openPicker(checkinInput); });
-            }
-        }
-
-        if (checkoutInput) {
-            checkoutInput.min = tomorrowStr;
-            if (!checkoutInput.value) {
-                checkoutInput.value = tomorrowStr;
-            }
-            checkoutInput.addEventListener('click', () => openPicker(checkoutInput));
-            checkoutInput.addEventListener('focus', () => openPicker(checkoutInput));
-            const coParent = checkoutInput.parentElement;
-            if (coParent) {
-                coParent.style.cursor = 'pointer';
-                coParent.addEventListener('click', (e) => { if (e.target !== checkoutInput) openPicker(checkoutInput); });
-            }
-        }
-    });
-</script>
 {% endblock %}

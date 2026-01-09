@@ -5,679 +5,184 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/booking-styles.css' %}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    .hotel-header {
-        background: linear-gradient(135deg, #FF6B35, #004E89);
-        color: white;
-        padding: 2rem 0;
-    }
-
-    .image-gallery {
-        position: relative;
-        border-radius: 8px;
-        overflow: hidden;
-        margin-bottom: 2rem;
-    }
-
-    .main-image {
-        width: 100%;
-        height: 400px;
-        object-fit: cover;
-    }
-
-    .rating-section {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .big-rating {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #FF6B35;
-    }
-
-    .room-card {
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-
-    .room-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        border-color: #FF6B35;
-    }
-
-    .room-card.selected {
-        border-color: #FF6B35;
-        background-color: #fff5f0;
-        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
-    }
-
-    .room-price {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #FF6B35;
-    }
-
-    .amenities-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-        margin: 2rem 0;
-    }
-
-    .amenity-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.95rem;
-    }
-
-    .amenity-item i {
-        color: #FF6B35;
-        font-size: 1.2rem;
-    }
-
-    .booking-widget {
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 2rem;
-        position: sticky;
-        top: 100px;
-    }
-
-    .booking-widget h4 {
-        margin-bottom: 1.5rem;
-        font-weight: 700;
-    }
-
-    .booking-widget .form-group {
-        margin-bottom: 1rem;
-    }
-
-    /* Make date inputs fully clickable */
-    .booking-widget input[type="date"],
-    .booking-widget input[type="number"],
-    .booking-widget input[type="text"],
-    .booking-widget input[type="email"],
-    .booking-widget input[type="tel"],
-    .booking-widget select {
-        width: 100%;
-        cursor: pointer;
-        color: #212529;
-        background-color: #fff;
-    }
-
-    .booking-widget input[type="date"]::-webkit-calendar-picker-indicator {
-        cursor: pointer;
-        width: 100%;
-        height: 100%;
-    }
-
-    .booking-widget input[type="date"]::-webkit-datetime-edit,
-    .booking-widget input[type="date"]::-webkit-input-placeholder {
-        color: #212529;
-        opacity: 1;
-    }
-
-    .btn-book {
-        background: #FF6B35;
-        border: none;
-        padding: 0.75rem 2rem;
-        font-weight: 600;
-        width: 100%;
-        margin-top: 1rem;
-        display: block;
-        visibility: visible;
-        opacity: 1;
-    }
-
-    .btn-book:hover {
-        background: #e55a2b;
-    }
-
-    /* Keep the booking CTA visible on larger viewports where other rules might hide it */
-    @media (min-width: 768px) {
-        .btn-book {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-    }
+.hotel-header {
+    background: linear-gradient(135deg,#FF6B35,#004E89);
+    color: white;
+    padding: 2rem 0;
+}
+.main-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.room-card {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+.room-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #FF6B35;
+}
+.booking-widget {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: sticky;
+    top: 90px;
+    height: fit-content;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hotel Header -->
 <div class="hotel-header">
     <div class="container">
         <a href="/hotels/" class="text-white-50 text-decoration-none">
-            <i class="fas fa-chevron-left"></i> Back to Hotels
+            ← Back to Hotels
         </a>
-        <h1 class="mt-2 mb-0">{{ hotel.name }}</h1>
+        <h1 class="mt-2">{{ hotel.name }}</h1>
     </div>
 </div>
 
 <div class="container my-5">
     <div class="row">
-        <!-- Main Content -->
         <div class="col-lg-8">
-            <!-- Image Gallery -->
-            <div class="image-gallery">
-                <img id="mainImage" loading="lazy" style="object-fit: cover; aspect-ratio: 16/9;" 
-                     src="{% if hotel.primary_image_url %}{{ hotel.primary_image_url }}{% else %}https://via.placeholder.com/800x400?text={{ hotel.name|urlencode }}{% endif %}" 
-                     alt="{{ hotel.name }}" 
-                     class="main-image"
-                     onerror="this.src='https://via.placeholder.com/800x400?text=Hotel+Image'">
-            </div>
-            {% if hotel.images.all %}
-            <div class="d-flex flex-wrap gap-2 mb-4" id="galleryThumbs">
-                {% for image in hotel.images.all %}
-                    <img src="{{ image.image.url }}" data-main-image="{{ image.image.url }}" loading="lazy" 
-                         alt="{{ hotel.name }} image {{ forloop.counter }}" 
-                         style="width: 120px; height: 80px; object-fit: cover; cursor: pointer; border-radius: 4px;"
-                         onerror="this.style.display='none'">
-                {% endfor %}
-            </div>
-            {% endif %}
+            <img class="main-image mb-4"
+                 src="{{ hotel.primary_image_url|default:'https://via.placeholder.com/800x400' }}"
+                 alt="{{ hotel.name }}">
 
-            <!-- Rating -->
-            <div class="rating-section">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="big-rating">
-                            <i class="fas fa-star" style="color: #FFD700;"></i> {{ hotel.review_rating }}/5
-                        </div>
-                        <p class="text-muted">{{ hotel.review_count }} reviews</p>
+            <h3>About This Hotel</h3>
+            <p>{{ hotel.description }}</p>
+
+            <h4 class="mt-4">Available Room Types</h4>
+            {% for room in hotel.room_types.all %}
+            <div class="room-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>{{ room.name }}</h5>
+                        <p class="mb-1">Occupancy: {{ room.max_occupancy }}</p>
+                        <p class="mb-0">Beds: {{ room.number_of_beds }}</p>
                     </div>
-                    <div class="col-md-6">
-                        <p class="mb-2"><strong>Star Rating:</strong> {{ hotel.star_rating }} ⭐</p>
-                        <p class="mb-0"><strong>Location:</strong> {{ hotel.city.name }}, {{ hotel.city.state }}</p>
+                    <div class="text-end">
+                        <div class="room-price">₹{{ room.base_price }}/night</div>
+                        <button class="btn btn-primary mt-2 select-room"
+                                data-id="{{ room.id }}"
+                                data-price="{{ room.base_price }}">
+                            Select Room
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <!-- Hotel Details -->
-            <div class="mb-4">
-                <h3 class="mb-3">About This Hotel</h3>
-                <p>{{ hotel.description }}</p>
-            </div>
-
-            <!-- Address & Contact -->
-            <div class="mb-4">
-                <h4>Address & Contact</h4>
-                <p class="mb-2">
-                    <i class="fas fa-map-marker-alt" style="color: #FF6B35;"></i>
-                    {{ hotel.address }}
-                </p>
-                <p class="mb-2">
-                    <i class="fas fa-phone" style="color: #FF6B35;"></i>
-                    <a href="tel:{{ hotel.contact_phone }}">{{ hotel.contact_phone }}</a>
-                </p>
-                <p class="mb-0">
-                    <i class="fas fa-envelope" style="color: #FF6B35;"></i>
-                    <a href="mailto:{{ hotel.contact_email }}">{{ hotel.contact_email }}</a>
-                </p>
-            </div>
-
-            <!-- Amenities -->
-            <div class="mb-4">
-                <h4>Amenities & Facilities</h4>
-                <div class="amenities-grid">
-                    {% if hotel.has_wifi %}
-                        <div class="amenity-item">
-                            <i class="fas fa-wifi"></i> <span>Free WiFi</span>
-                        </div>
-                    {% endif %}
-                    {% if hotel.has_pool %}
-                        <div class="amenity-item">
-                            <i class="fas fa-water"></i> <span>Swimming Pool</span>
-                        </div>
-                    {% endif %}
-                    <div class="amenity-item">
-                        <i class="fas fa-cutlery"></i> <span>Restaurant</span>
-                    </div>
-                    <div class="amenity-item">
-                        <i class="fas fa-concierge-bell"></i> <span>24/7 Front Desk</span>
-                    </div>
-                    <div class="amenity-item">
-                        <i class="fas fa-dumbbell"></i> <span>Fitness Center</span>
-                    </div>
-                    <div class="amenity-item">
-                        <i class="fas fa-parking"></i> <span>Parking Available</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Room Types -->
-            <div class="mb-4">
-                <h3 class="mb-3">Available Room Types</h3>
-                {% for room in hotel.room_types.all %}
-                    <div class="room-card">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5>{{ room.name }}</h5>
-                                <p class="text-muted small mb-2">{{ room.description }}</p>
-                                <p class="mb-2">
-                                    <strong>Occupancy:</strong> Up to {{ room.max_occupancy }} guests
-                                </p>
-                                <p class="mb-0">
-                                    <strong>Beds:</strong> {{ room.number_of_beds }} bed(s)
-                                </p>
-                            </div>
-                            <div class="col-md-6 text-md-end">
-                                <div class="room-price">₹{{ room.base_price }}/night</div>
-                                <p class="text-muted small mb-2">Base Rate + {{ hotel.gst_percentage }}% GST</p>
-                                <p class="text-muted small mb-3">{{ room.total_rooms }} rooms available</p>
-                                <button class="btn btn-primary select-room-btn" data-room-id="{{ room.id }}" data-room-name="{{ room.name }}" data-room-price="{{ room.base_price }}">
-                                    Select Room
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
+            {% endfor %}
         </div>
 
-        <!-- Booking Widget -->
         <div class="col-lg-4">
             <div class="booking-widget">
                 <h4>Book This Hotel</h4>
-                {% if availability_snapshot %}
-                    <div class="alert alert-success small">
-                        <strong>Rooms available:</strong> {{ availability_snapshot.available_rooms|default:"On request" }}
-                        {% if availability_snapshot.rate %}<br>Best rate: ₹{{ availability_snapshot.rate|floatformat:"0" }}/night{% endif %}
-                        <br><span class="text-muted">Source: {{ availability_snapshot.source|default:"N/A"|title }}</span>
-                    </div>
-                {% endif %}
-                <form id="bookingForm" method="post" action="{% url 'hotels:book_hotel' hotel.id %}">
+
+                <form method="post" action="{% url 'hotels:book_hotel' hotel.id %}">
                     {% csrf_token %}
-                    
-                    <div class="form-group">
-                        <label for="checkin" class="form-label">Check-in Date</label>
-                        <input type="date" id="checkin" name="checkin_date" class="form-control" required value="{{ prefill_checkin }}">
-                    </div>
 
-                    <div class="form-group">
-                        <label for="checkout" class="form-label">Check-out Date</label>
-                        <input type="date" id="checkout" name="checkout_date" class="form-control" required value="{{ prefill_checkout }}">
-                    </div>
+                    <label class="form-label">Check-in</label>
+                    <input type="date" name="checkin_date" id="checkin"
+                           class="form-control mb-2"
+                           value="{{ prefill_checkin|default:'' }}" required>
 
-                    <div class="form-group">
-                        <label for="room_type" class="form-label">Room Type</label>
-                        <select id="room_type" name="room_type" class="form-select" required>
-                            <option value="">Select a room type</option>
-                            {% for room in hotel.room_types.all %}
-                                <option value="{{ room.id }}" data-price="{{ room.base_price }}" {% if prefill_room_type|stringformat:'s' == room.id|stringformat:'s' %}selected{% endif %}>{{ room.name }} - ₹{{ room.base_price }}/night</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <label class="form-label">Check-out</label>
+                    <input type="date" name="checkout_date" id="checkout"
+                           class="form-control mb-2"
+                           value="{{ prefill_checkout|default:'' }}" required>
 
-                    <div class="form-group">
-                        <label for="num_rooms" class="form-label">Number of Rooms</label>
-                        <input type="number" id="num_rooms" name="num_rooms" class="form-control" min="1" value="1" required>
-                    </div>
+                    <label class="form-label">Room Type</label>
+                    <select name="room_type" id="room_type"
+                            class="form-select mb-2" required>
+                        <option value="">Select</option>
+                        {% for room in hotel.room_types.all %}
+                        <option value="{{ room.id }}" data-price="{{ room.base_price }}">
+                            {{ room.name }} - ₹{{ room.base_price }}
+                        </option>
+                        {% endfor %}
+                    </select>
 
-                    <div class="form-group">
-                        <label for="num_guests" class="form-label">Number of Guests</label>
-                        <input type="number" id="num_guests" name="num_guests" class="form-control" min="1" value="{{ prefill_guests|default:1 }}" required>
-                    </div>
+                    <label class="form-label">Rooms</label>
+                    <input type="number" id="num_rooms" name="num_rooms"
+                           class="form-control mb-2" min="1" value="1">
 
-                    <div class="form-group">
-                        <label for="guest_name" class="form-label">Guest Name</label>
-                        <input type="text" id="guest_name" name="guest_name" class="form-control" required>
-                    </div>
+                    <label class="form-label">Guest Name</label>
+                    <input type="text" name="guest_name"
+                           class="form-control mb-2" required>
 
-                    <div class="form-group">
-                        <label for="guest_email" class="form-label">Email</label>
-                        <input type="email" id="guest_email" name="guest_email" class="form-control" required>
-                    </div>
+                    <label class="form-label">Email</label>
+                    <input type="email" name="guest_email"
+                           class="form-control mb-2" required>
 
-                    <div class="form-group">
-                        <label for="guest_phone" class="form-label">Phone</label>
-                        <input type="tel" id="guest_phone" name="guest_phone" class="form-control" required>
-                    </div>
+                    <label class="form-label">Phone</label>
+                    <input type="tel" name="guest_phone"
+                           class="form-control mb-3" required>
 
-                    <div class="alert alert-info small">
-                        <strong>Price Breakdown:</strong>
-                        <div class="mt-2">
-                            <div class="d-flex justify-content-between">
-                                <span>Base Price:</span>
-                                <span>₹<span id="basePrice">0</span></span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span>GST ({{ hotel.gst_percentage }}%):</span>
-                                <span>₹<span id="gstAmount">0</span></span>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between fw-bold">
-                                <span>Total Price:</span>
-                                <span>₹<span id="totalPrice">0</span></span>
-                            </div>
-                        </div>
+                    <div class="alert alert-info">
+                        Base: ₹<span id="basePrice">0</span><br>
+                        GST: ₹<span id="gstAmount">0</span><br>
+                        <strong>Total: ₹<span id="totalPrice">0</span></strong>
                     </div>
 
                     {% if user.is_authenticated %}
-                        <button type="submit" id="hotelBookNowBtn" class="btn btn-primary btn-book" aria-label="Proceed to payment">
-                            <i class="fas fa-check-circle"></i> Proceed to Payment
-                        </button>
+                    <button class="btn btn-success w-100">
+                        Proceed to Payment
+                    </button>
                     {% else %}
-                        <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn btn-primary btn-book">
-                            <i class="fas fa-sign-in-alt"></i> Login to Book
-                        </a>
+                    <a href="{% url 'users:login' %}" class="btn btn-primary w-100">
+                        Login to Book
+                    </a>
                     {% endif %}
                 </form>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    const GST_PERCENTAGE = parseFloat("{{ hotel.gst_percentage|default:'0' }}");
-    
-    function selectRoom(roomId, roomName, price) {
-        document.getElementById('room_type').value = roomId;
-        
-        // Remove selected class from all room cards
-        document.querySelectorAll('.room-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-        
-        // Add selected class to clicked room card
-        event.target.closest('.room-card').classList.add('selected');
-        
-        updatePrice();
-        
-        // Scroll to booking widget
-        document.querySelector('.booking-widget').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    const roomSelect = document.getElementById('room_type');
+    const numRooms = document.getElementById('num_rooms');
+    const checkin = document.getElementById('checkin');
+    const checkout = document.getElementById('checkout');
+    const baseEl = document.getElementById('basePrice');
+    const gstEl = document.getElementById('gstAmount');
+    const totalEl = document.getElementById('totalPrice');
+    const GST = {{ hotel.gst_percentage|default:0 }};
 
-    function updatePrice() {
-        const checkin = new Date(document.getElementById('checkin').value);
-        const checkout = new Date(document.getElementById('checkout').value);
-        const numRooms = parseInt(document.getElementById('num_rooms').value) || 1;
-        const roomSelect = document.getElementById('room_type');
-        const selectedOption = roomSelect.options[roomSelect.selectedIndex];
-        
-        if (!selectedOption.value || !document.getElementById('checkin').value || !document.getElementById('checkout').value) {
-            document.getElementById('basePrice').textContent = '0';
-            document.getElementById('gstAmount').textContent = '0';
-            document.getElementById('totalPrice').textContent = '0';
+    function calc() {
+        if (!roomSelect.value || !checkin.value || !checkout.value) {
+            baseEl.textContent = gstEl.textContent = totalEl.textContent = 0;
             return;
         }
-
-        const pricePerNight = parseFloat(selectedOption.dataset.price || '0');
-        const days = Math.max(1, (checkout - checkin) / (1000 * 60 * 60 * 24));
-        const basePrice = pricePerNight * days * numRooms;
-        const gstAmount = basePrice * (GST_PERCENTAGE / 100);
-        const totalPrice = basePrice + gstAmount;
-        
-        document.getElementById('basePrice').textContent = basePrice.toFixed(0);
-        document.getElementById('gstAmount').textContent = gstAmount.toFixed(0);
-        document.getElementById('totalPrice').textContent = totalPrice.toFixed(0);
+        const price = parseFloat(roomSelect.selectedOptions[0].dataset.price);
+        const nights = (new Date(checkout) - new Date(checkin)) / 86400000;
+        const base = price * nights * parseInt(numRooms.value || 1);
+        const gst = base * GST / 100;
+        baseEl.textContent = base.toFixed(0);
+        gstEl.textContent = gst.toFixed(0);
+        totalEl.textContent = (base + gst).toFixed(0);
     }
 
-    function validateAndSubmit(event) {
-        event.preventDefault();
-        
-        const checkin = document.getElementById('checkin').value;
-        const checkout = document.getElementById('checkout').value;
-        const roomType = document.getElementById('room_type').value;
-        const numRooms = document.getElementById('num_rooms').value;
-        const guestName = document.getElementById('guest_name').value;
-        const guestEmail = document.getElementById('guest_email').value;
-        const guestPhone = document.getElementById('guest_phone').value;
-        
-        // Validation checks
-        if (!checkin || !checkout || !roomType || !numRooms || !guestName || !guestEmail || !guestPhone) {
-            alert('❌ Please fill all required fields');
-            return;
-        }
-        
-        // Check if checkout is after checkin
-        const checkinDate = new Date(checkin);
-        const checkoutDate = new Date(checkout);
-        if (checkoutDate <= checkinDate) {
-            alert('❌ Check-out date must be after check-in date');
-            return;
-        }
-        
-        // Check if dates are not in the past
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (checkinDate < today) {
-            alert('❌ Check-in date cannot be in the past');
-            return;
-        }
-        
-        // Validate email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(guestEmail)) {
-            alert('❌ Please enter a valid email address');
-            return;
-        }
-        
-        // Validate phone
-        const phoneRegex = /^[0-9]{10,}$/;
-        if (!phoneRegex.test(guestPhone.replace(/\D/g, ''))) {
-            alert('❌ Please enter a valid phone number (at least 10 digits)');
-            return;
-        }
-        
-        // All validations passed, submit the form
-        document.getElementById('bookingForm').submit();
-    }
+    [roomSelect, numRooms, checkin, checkout].forEach(e => e.addEventListener('change', calc));
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const checkinInput = document.getElementById('checkin');
-        const checkoutInput = document.getElementById('checkout');
-        const roomSelect = document.getElementById('room_type');
-        const numRoomsInput = document.getElementById('num_rooms');
-        const mainImageEl = document.getElementById('mainImage');
-        const bookingForm = document.getElementById('bookingForm');
-
-        console.log('[BOOKING] Initializing hotel booking form...');
-
-        // Read URL params FIRST before any default logic
-        const params = new URLSearchParams(window.location.search);
-        const qsCheckin = params.get('checkin');
-        const qsCheckout = params.get('checkout');
-        
-        // Apply URL param values if present
-        if (qsCheckin && checkinInput) {
-            checkinInput.value = qsCheckin;
-            console.log('[BOOKING] Set checkin from URL:', qsCheckin);
-        } else if (checkinInput && !checkinInput.value) {
-            // Only set default if no URL param AND field is empty
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            checkinInput.value = tomorrow.toISOString().split('T')[0];
-        }
-        
-        if (qsCheckout && checkoutInput) {
-            checkoutInput.value = qsCheckout;
-            console.log('[BOOKING] Set checkout from URL:', qsCheckout);
-        } else if (checkoutInput && !checkoutInput.value) {
-            // Only set default if no URL param AND field is empty
-            const dayAfter = new Date();
-            dayAfter.setDate(dayAfter.getDate() + 2);
-            checkoutInput.value = dayAfter.toISOString().split('T')[0];
-        }
-
-        // Gallery thumbnails click handler
-        document.querySelectorAll('#galleryThumbs img[data-main-image]').forEach((thumb) => {
-            thumb.addEventListener('click', () => {
-                const src = thumb.getAttribute('data-main-image');
-                if (src && mainImageEl) {
-                    mainImageEl.src = src;
-                    console.log('[BOOKING] Changed main image to:', src);
-                }
-            });
-        });
-
-        // Select room button handlers
-        document.querySelectorAll('.select-room-btn').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const roomId = btn.getAttribute('data-room-id');
-                const roomName = btn.getAttribute('data-room-name');
-                const roomPrice = btn.getAttribute('data-room-price');
-                selectRoom(roomId, roomName, roomPrice);
-            });
-        });
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const todayStr = today.toISOString().split('T')[0];
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-        // Enhanced date picker opener - works on all browsers
-        const openPicker = (input) => {
-            if (!input) return;
-            
-            // Try standard showPicker (Chrome, Edge, Opera)
-            if (typeof input.showPicker === 'function') {
-                try {
-                    input.showPicker();
-                    console.log('[BOOKING] Opened picker using showPicker()');
-                } catch (e) {
-                    console.warn('[BOOKING] showPicker failed:', e);
-                    input.focus();
-                }
-            } else {
-                // Fallback: focus to trigger browser default
-                input.focus();
-                console.log('[BOOKING] Using focus() fallback for date picker');
-            }
+    document.querySelectorAll('.select-room').forEach(btn => {
+        btn.onclick = () => {
+            roomSelect.value = btn.dataset.id;
+            calc();
+            document.querySelector('.booking-widget').scrollIntoView({behavior:'smooth'});
         };
-
-        // Check-in date initialization
-        if (checkinInput) {
-            checkinInput.min = todayStr;
-            // Only set default if no value already present from server
-            if (!checkinInput.value || checkinInput.value === '') {
-                checkinInput.value = todayStr;
-                console.log('[BOOKING] Set default checkin to today:', todayStr);
-            } else {
-                console.log('[BOOKING] Keeping server-provided checkin:', checkinInput.value);
-            }
-            
-            // Multiple events to ensure picker opens
-            checkinInput.addEventListener('click', function(e) {
-                e.preventDefault();
-                openPicker(checkinInput);
-            });
-            checkinInput.addEventListener('focus', function(e) {
-                openPicker(checkinInput);
-            });
-            checkinInput.addEventListener('touchstart', function(e) {
-                openPicker(checkinInput);
-            });
-            
-            checkinInput.addEventListener('change', function() {
-                console.log('[BOOKING] Checkin changed to:', this.value);
-                const checkout = new Date(checkoutInput.value);
-                const checkin = new Date(this.value);
-                
-                if (checkin < today) {
-                    alert('⚠️ Please select today or a future date');
-                    this.value = todayStr;
-                    return;
-                }
-                
-                if (checkout && checkout <= checkin) {
-                    checkoutInput.value = '';
-                    alert('⚠️ Check-out date must be after check-in date');
-                }
-                
-                updatePrice();
-            });
-        }
-
-        // Check-out date initialization
-        if (checkoutInput) {
-            checkoutInput.min = tomorrowStr;
-            // Only set default if no value already present from server
-            if (!checkoutInput.value || checkoutInput.value === '') {
-                checkoutInput.value = tomorrowStr;
-                console.log('[BOOKING] Set default checkout to tomorrow:', tomorrowStr);
-            } else {
-                console.log('[BOOKING] Keeping server-provided checkout:', checkoutInput.value);
-            }
-            
-            // Multiple events to ensure picker opens
-            checkoutInput.addEventListener('click', function(e) {
-                e.preventDefault();
-                openPicker(checkoutInput);
-            });
-            checkoutInput.addEventListener('focus', function(e) {
-                openPicker(checkoutInput);
-            });
-            checkoutInput.addEventListener('touchstart', function(e) {
-                openPicker(checkoutInput);
-            });
-            
-            checkoutInput.addEventListener('change', function() {
-                console.log('[BOOKING] Checkout changed to:', this.value);
-                const checkin = new Date(checkinInput.value);
-                const checkout = new Date(this.value);
-                
-                if (checkout <= checkin) {
-                    this.value = '';
-                    alert('⚠️ Check-out date must be after check-in date');
-                    return;
-                }
-                
-                updatePrice();
-            });
-        }
-
-        // Number of rooms change handler
-        if (numRoomsInput) {
-            numRoomsInput.addEventListener('change', function() {
-                console.log('[BOOKING] Rooms changed to:', this.value);
-                updatePrice();
-            });
-        }
-
-        // Room type selection handler
-        if (roomSelect) {
-            roomSelect.addEventListener('change', function() {
-                console.log('[BOOKING] Room type changed to:', this.value);
-                updatePrice();
-            });
-        }
-
-        // Auto-select first room if none chosen to show pricing quickly
-        if (roomSelect && !roomSelect.value && roomSelect.options.length > 1) {
-            roomSelect.selectedIndex = 1;
-            console.log('[BOOKING] Auto-selected first room type');
-        }
-
-        // Form submission handler - validate before submit
-        if (bookingForm) {
-            bookingForm.addEventListener('submit', function(e) {
-                validateAndSubmit(e);
-            });
-        }
-
-        // Initial price calculation
-        updatePrice();
-        console.log('[BOOKING] Form initialization complete');
     });
+});
 </script>
 {% endblock %}
