@@ -56,3 +56,11 @@ celerybeat.pid
 
 # Redis
 dump.rdb
+
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+db.sqlite3
+staticfiles/
