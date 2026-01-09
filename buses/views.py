@@ -296,6 +296,7 @@ def book_bus(request, bus_id):
         )
         
         # Create seat bookings
+        booked_seats = []
         for seat_id in seat_ids:
             seat = SeatLayout.objects.get(id=seat_id)
             BusBookingSeat.objects.create(
@@ -305,6 +306,28 @@ def book_bus(request, bus_id):
                 passenger_age=passenger_age or 0,
                 passenger_gender=passenger_gender,
             )
+            booked_seats.append(seat)
+        
+        # BACKEND LADIES SEAT LOGIC: 
+        # If passenger is FEMALE, mark adjacent seats as ladies-only
+        if passenger_gender == 'F':
+            for seat in booked_seats:
+                # Find adjacent seats (same row, adjacent columns)
+                adjacent_seats = SeatLayout.objects.filter(
+                    bus=bus,
+                    deck=seat.deck,
+                    row=seat.row,
+                    reserved_for='general'  # Only convert general seats
+                ).exclude(
+                    id__in=seat_ids  # Don't convert already booked seats
+                ).filter(
+                    column__in=[seat.column - 1, seat.column + 1]  # Left and right adjacent
+                )
+                
+                # Mark adjacent seats as ladies-only
+                for adj_seat in adjacent_seats:
+                    adj_seat.reserved_for = 'ladies'
+                    adj_seat.save()
         
         # Update schedule availability
         schedule.book_seats(len(seat_ids))
