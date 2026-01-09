@@ -606,8 +606,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateInputs = ['hotelCheckin', 'hotelCheckout', 'busDate'];
 
     const openPicker = (input) => {
-        if (input && typeof input.showPicker === 'function') {
-            input.showPicker();
+        // Just focus - showPicker() requires user gesture and causes errors
+        if (input) {
+            input.focus();
         }
     };
 

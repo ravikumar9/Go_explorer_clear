@@ -58,9 +58,9 @@
                     <p class="mb-2"><strong>Route:</strong> {{ booking.bus_details.bus_schedule.route.source_city.name }} → {{ booking.bus_details.bus_schedule.route.destination_city.name }}</p>
                     <p class="mb-2"><strong>Travel Date:</strong> {{ booking.bus_details.bus_schedule.date|date:"d M Y" }}</p>
                     <p class="mb-2"><strong>Departure:</strong> {{ booking.bus_details.bus_schedule.route.departure_time|time:"H:i" }}</p>
-                    <p class="mb-2"><strong>Seats:</strong> {% for seat in booking.bus_details.bus_booking_seats.all %}{{ seat.seat.seat_number }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-                    <p class="mb-2"><strong>Boarding:</strong> {{ booking.bus_details.boarding_point.name }} ({{ booking.bus_details.boarding_point.pickup_time|time:"H:i" }})</p>
-                    <p class="mb-2"><strong>Dropping:</strong> {{ booking.bus_details.dropping_point.name }} ({{ booking.bus_details.dropping_point.drop_time|time:"H:i" }})</p>
+                    <p class="mb-2"><strong>Seats:</strong> {% for seat in booking.bus_details.bus_booking_seats.all %}{{ seat.seat.seat_number }}{% if not forloop.last %}, {% endif %}{% empty %}N/A{% endfor %}</p>
+                    <p class="mb-2"><strong>Boarding:</strong> {{ booking.bus_details.boarding_point }}</p>
+                    <p class="mb-2"><strong>Dropping:</strong> {{ booking.bus_details.dropping_point }}</p>
                     {% else %}
                     <hr>
                     <div class="alert alert-info">

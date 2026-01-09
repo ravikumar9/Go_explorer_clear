@@ -176,9 +176,8 @@ class DatePickerHelper {
     }
 
     static openPicker(inputElement) {
-        if (inputElement && typeof inputElement.showPicker === 'function') {
-            inputElement.showPicker();
-        } else {
+        // Just focus - showPicker() requires user gesture and causes errors
+        if (inputElement) {
             inputElement.focus();
         }
     }
