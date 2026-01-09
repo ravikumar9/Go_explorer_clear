@@ -373,7 +373,8 @@ class Command(BaseCommand):
             ],
         }
         
-        count = 0
+        count_created = 0
+        count_existing = 0
         for route in routes:
             source_code = route.source_city.code
             dest_code = route.destination_city.code
@@ -392,7 +393,9 @@ class Command(BaseCommand):
                     }
                 )
                 if created:
-                    count += 1
+                    count_created += 1
+                else:
+                    count_existing += 1
             
             # Create dropping points
             for idx, dp_data in enumerate(dropping_data.get(dest_code, []), 1):
@@ -408,17 +411,22 @@ class Command(BaseCommand):
                     }
                 )
                 if created:
-                    count += 1
+                    count_created += 1
+                else:
+                    count_existing += 1
         
-        self.stdout.write(f"  [OK] Created {count} boarding/dropping points")
+        grand_total = count_created + count_existing
+        self.stdout.write(f"  [OK] Boarding/Dropping - New: {count_created}, Existing: {count_existing}, Total in DB: {grand_total}")
 
     def create_seat_layouts(self, buses):
         """Create seat layouts for all buses based on bus_type"""
         self.stdout.write('\n6. Creating Seat Layouts...')
         
         total_created = 0
+        total_existing = 0
         for bus in buses:
-            seat_count = 0
+            seat_count_created = 0
+            seat_count_existing = 0
             
             # Determine layout based on bus_type
             if bus.bus_type in ['seater', 'ac_seater']:
@@ -444,7 +452,9 @@ class Command(BaseCommand):
                         }
                     )
                     if created:
-                        seat_count += 1
+                        seat_count_created += 1
+                    else:
+                        seat_count_existing += 1
                 
             elif bus.bus_type in ['sleeper', 'ac_sleeper', 'volvo']:
                 # SLEEPER: Lower deck + Upper deck
@@ -481,7 +491,9 @@ class Command(BaseCommand):
                         }
                     )
                     if created:
-                        seat_count += 1
+                        seat_count_created += 1
+                    else:
+                        seat_count_existing += 1
                         
             else:
                 # Default fallback
@@ -502,22 +514,30 @@ class Command(BaseCommand):
                         }
                     )
                     if created:
-                        seat_count += 1
+                        seat_count_created += 1
+                    else:
+                        seat_count_existing += 1
             
-            self.stdout.write(f"  [OK] {bus.bus_number} ({bus.bus_type}) - Created {seat_count} seats")
-            total_created += seat_count
+            total = seat_count_created + seat_count_existing
+            status = f"New: {seat_count_created}, Existing: {seat_count_existing}, Total: {total}"
+            self.stdout.write(f"  [OK] {bus.bus_number} ({bus.bus_type}) - {status}")
+            total_created += seat_count_created
+            total_existing += seat_count_existing
         
-        self.stdout.write(f"  [OK] Total seats created: {total_created}")
+        grand_total = total_created + total_existing
+        self.stdout.write(f"  [OK] Seats - New: {total_created}, Existing: {total_existing}, Total in DB: {grand_total}")
 
     def create_schedules(self, routes):
         """Create schedules for next 30 days"""
         self.stdout.write('\n7. Creating Schedules (Next 30 Days)...')
         
         total_created = 0
+        total_existing = 0
         today = date.today()
         
         for route in routes:
-            schedule_count = 0
+            schedule_count_created = 0
+            schedule_count_existing = 0
             for days_ahead in range(30):
                 schedule_date = today + timedelta(days=days_ahead)
                 
@@ -533,28 +553,50 @@ class Command(BaseCommand):
                     }
                 )
                 if created:
-                    schedule_count += 1
+                    schedule_count_created += 1
+                else:
+                    schedule_count_existing += 1
             
+            total = schedule_count_created + schedule_count_existing
+            status = f"New: {schedule_count_created}, Existing: {schedule_count_existing}"
             self.stdout.write(
-                f"  [OK] {route.source_city.code}->{route.destination_city.code} | "
-                f"Created {schedule_count} schedules"
+                f"  [OK] {route.source_city.code}->{route.destination_city.code} | {status}"
             )
-            total_created += schedule_count
+            total_created += schedule_count_created
+            total_existing += schedule_count_existing
         
-        self.stdout.write(f"  [OK] Total schedules created: {total_created}")
+        grand_total = total_created + total_existing
+        self.stdout.write(f"  [OK] Schedules - New: {total_created}, Existing: {total_existing}, Total in DB: {grand_total}")
 
     def print_summary(self, cities, operators, buses, routes):
         """Print data summary"""
-        self.stdout.write('\nSummary:')
-        self.stdout.write(f"  • Cities: {len(cities)}")
-        self.stdout.write(f"  • Operators: {len(operators)}")
-        self.stdout.write(f"  • Buses: {len(buses)}")
-        self.stdout.write(f"  • Routes: {len(routes)}")
-        self.stdout.write(f"  • Boarding/Dropping Points: {BoardingPoint.objects.count() + DroppingPoint.objects.count()}")
+        self.stdout.write('\n' + '='*70)
+        self.stdout.write('DATABASE SUMMARY (Current State)')
+        self.stdout.write('='*70)
+        self.stdout.write(f"  • Cities: {City.objects.count()}")
+        self.stdout.write(f"  • Operators: {BusOperator.objects.count()}")
+        self.stdout.write(f"  • Buses: {Bus.objects.count()}")
+        self.stdout.write(f"  • Routes: {BusRoute.objects.count()}")
+        self.stdout.write(f"  • Boarding Points: {BoardingPoint.objects.count()}")
+        self.stdout.write(f"  • Dropping Points: {DroppingPoint.objects.count()}")
         self.stdout.write(f"  • Seat Layouts: {SeatLayout.objects.count()}")
         self.stdout.write(f"  • Schedules: {BusSchedule.objects.count()}")
-        self.stdout.write(f'\nNext Steps:')
-        self.stdout.write(f'  1. Log in to Django Admin: /admin/')
-        self.stdout.write(f'  2. Verify all data is visible')
-        self.stdout.write(f'  3. Test bus search on UI')
-        self.stdout.write(f'  4. Verify mobile & desktop parity')
+        
+        # Critical checks
+        issues = []
+        if SeatLayout.objects.count() == 0:
+            issues.append("NO SEATS - Bookings will FAIL")
+        if BusSchedule.objects.count() == 0:
+            issues.append("NO SCHEDULES - Search will return EMPTY")
+        if BoardingPoint.objects.count() == 0:
+            issues.append("NO BOARDING POINTS - Booking form will BREAK")
+        
+        if issues:
+            self.stdout.write('\n' + '='*70)
+            self.stdout.write(self.style.ERROR('CRITICAL ISSUES DETECTED:'))
+            for issue in issues:
+                self.stdout.write(self.style.ERROR(f"  X {issue}"))
+            self.stdout.write('='*70)
+            self.stdout.write(self.style.WARNING('\nRun with --clean to delete and recreate all data'))
+        else:
+            self.stdout.write(f'\n{self.style.SUCCESS("All data looks good - booking flow should work")}')
