@@ -104,12 +104,20 @@ def book_package(request, package_id):
                 customer_phone=traveler_phone or getattr(request.user, 'phone', ''),
             )
             
+            # Create package booking details
+            from bookings.models import PackageBooking
+            PackageBooking.objects.create(
+                booking=booking,
+                package_departure=departure,
+                number_of_travelers=num_travelers,
+            )
+            
             # Update spot availability atomically
             departure.available_slots -= num_travelers
             departure.save(update_fields=['available_slots'])
         
-        messages.success(request, f'Package booked successfully! Booking ID: {booking.booking_id}')
-        return redirect(reverse('bookings:booking-detail', kwargs={'booking_id': booking.booking_id}))
+        # Redirect to confirmation page instead of showing success message
+        return redirect(reverse('bookings:booking-confirm', kwargs={'booking_id': booking.booking_id}))
     
     except Exception as e:
         messages.error(request, f'Booking failed: {str(e)}')

@@ -157,6 +157,34 @@ class BusRoute(TimeStampedModel):
         if schedule:
             return schedule.available_seats
         return self.bus.total_seats
+    
+    def calculate_fare(self, num_seats, convenience_fee_pct=2.0, gst_pct=5.0):
+        """
+        Calculate total fare for given number of seats
+        
+        Args:
+            num_seats: Number of seats to book
+            convenience_fee_pct: Convenience fee percentage (default 2%)
+            gst_pct: GST percentage (default 5%)
+        
+        Returns:
+            dict with base, fee, gst, total amounts
+        """
+        from decimal import Decimal
+        
+        base_fare = Decimal(str(self.base_fare)) * Decimal(str(num_seats))
+        conv_fee = base_fare * Decimal(str(convenience_fee_pct)) / Decimal('100')
+        gst = (base_fare + conv_fee) * Decimal(str(gst_pct)) / Decimal('100')
+        total = base_fare + conv_fee + gst
+        
+        return {
+            'base_fare': float(base_fare),
+            'convenience_fee': float(conv_fee),
+            'gst': float(gst),
+            'total': float(total),
+            'num_seats': num_seats,
+            'per_seat': float(self.base_fare),
+        }
 
 
 class BoardingPoint(models.Model):

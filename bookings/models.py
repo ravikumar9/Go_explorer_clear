@@ -13,6 +13,7 @@ class Booking(TimeStampedModel):
     """Base booking model"""
     BOOKING_STATUS = [
         ('pending', 'Pending'),
+        ('payment_pending', 'Payment Pending'),
         ('confirmed', 'Confirmed'),
         ('cancelled', 'Cancelled'),
         ('completed', 'Completed'),
@@ -42,7 +43,7 @@ class Booking(TimeStampedModel):
     last_synced_at = models.DateTimeField(null=True, blank=True)
     booking_source = models.CharField(max_length=20, choices=[('internal','Internal'), ('external','External')], default='internal')
     booking_type = models.CharField(max_length=20, choices=BOOKING_TYPES)
-    status = models.CharField(max_length=20, choices=BOOKING_STATUS, default='pending')
+    status = models.CharField(max_length=20, choices=BOOKING_STATUS, default='payment_pending')
 
     inventory_channel = models.CharField(max_length=20, choices=INVENTORY_CHANNELS, default='internal_cm')
     lock_id = models.CharField(max_length=128, blank=True)

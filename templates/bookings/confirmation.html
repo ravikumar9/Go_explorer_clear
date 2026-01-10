@@ -21,11 +21,11 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     {% else %}
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
         <h4 class="alert-heading">
-            <i class="fas fa-check-circle"></i> Booking Successful!
+            <i class="fas fa-info-circle"></i> Booking Reserved
         </h4>
-        <p>Your booking has been confirmed. Please proceed to payment to complete your reservation.</p>
+        <p>Your booking has been reserved. Please complete the payment to confirm your reservation.</p>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     
@@ -61,6 +61,13 @@
                     <p class="mb-2"><strong>Seats:</strong> {% for seat in booking.bus_details.bus_booking_seats.all %}{{ seat.seat.seat_number }}{% if not forloop.last %}, {% endif %}{% empty %}N/A{% endfor %}</p>
                     <p class="mb-2"><strong>Boarding:</strong> {{ booking.bus_details.boarding_point }}</p>
                     <p class="mb-2"><strong>Dropping:</strong> {{ booking.bus_details.dropping_point }}</p>
+                    {% elif booking.package_details %}
+                    <hr>
+                    <h6>Package Booking Details</h6>
+                    <p class="mb-2"><strong>Package:</strong> {{ booking.package_details.package_departure.package.name }}</p>
+                    <p class="mb-2"><strong>Departure:</strong> {{ booking.package_details.package_departure.start_date|date:"d M Y" }}</p>
+                    <p class="mb-2"><strong>Duration:</strong> {{ booking.package_details.package_departure.package.duration_days }} days</p>
+                    <p class="mb-2"><strong>Travelers:</strong> {{ booking.package_details.number_of_travelers }}</p>
                     {% else %}
                     <hr>
                     <div class="alert alert-info">

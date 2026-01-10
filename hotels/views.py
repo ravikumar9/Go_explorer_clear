@@ -476,7 +476,7 @@ def book_hotel(request, pk):
                 user=request.user,
                 booking_type='hotel',
                 total_amount=total,
-                status='pending',
+                status='payment_pending',
                 customer_name=guest_name or request.user.get_full_name() or request.user.username,
                 customer_email=guest_email or request.user.email,
                 customer_phone=guest_phone or getattr(request.user, 'phone', ''),

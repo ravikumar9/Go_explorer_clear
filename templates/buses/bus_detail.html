@@ -308,7 +308,9 @@
                 </div>
                 
                 <p class="text-muted small mt-3">
-                    <i class="fas fa-info-circle"></i> Click on available seats to select. Female passengers can book ladies seats.
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Seat Rules:</strong> 
+                    Female passengers can book any available seat. Male passengers can only book general (green) seats.
                 </p>
             </div>
             {% endif %}
@@ -367,7 +369,7 @@
                         </div>
 
                         <div id="ladies_seat_warning" class="alert alert-warning d-none" role="alert">
-                            <i class="fas fa-exclamation-triangle"></i> Male passengers cannot book ladies seats. Please select different seats.
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Seat Restriction:</strong> Male passengers cannot book ladies-only seats. Please select different seats.
                         </div>
 
                         <div class="form-group mb-3">
@@ -442,20 +444,32 @@
         
         const gender = genderSelect.value;
         let hasInvalidSeat = false;
+        let invalidSeats = [];
         
         selected.forEach(seat => {
-            if (seat.reserved === 'ladies' && gender !== 'F') {
+            // Male can only book general seats
+            if (gender === 'M' && seat.reserved === 'ladies') {
                 hasInvalidSeat = true;
+                invalidSeats.push(seat.number);
+            }
+            // Female can book any seat
+            // Other genders can only book general seats
+            if (gender === 'O' && seat.reserved === 'ladies') {
+                hasInvalidSeat = true;
+                invalidSeats.push(seat.number);
             }
         });
 
         if (ladiesWarning) {
             if (hasInvalidSeat) {
+                ladiesWarning.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <strong>Seat Restriction:</strong> Seats ${invalidSeats.join(', ')} are reserved for female passengers only. Please select different seats.`;
                 ladiesWarning.classList.remove('d-none');
                 if (bookNowBtn) bookNowBtn.disabled = true;
             } else {
                 ladiesWarning.classList.add('d-none');
-                if (bookNowBtn) bookNowBtn.disabled = selected.length === 0;
+                if (bookNowBtn && gender) {
+                    bookNowBtn.disabled = selected.length === 0;
+                }
             }
         }
     }
@@ -575,10 +589,22 @@
 
         document.getElementById('bookingForm').addEventListener('submit', function(e) {
             const selected = getSelectedSeats();
+            const gender = document.getElementById('passenger_gender').value;
+            
             if (selected.length === 0) {
                 e.preventDefault();
                 alert('Please select at least one seat');
+                return false;
             }
+            
+            // Validate ladies seat restrictions before submit
+            let invalidSeats = selected.filter(s => s.reserved === 'ladies' && gender !== 'F');
+            if (invalidSeats.length > 0) {
+                e.preventDefault();
+                alert(`Seats ${invalidSeats.map(s => s.number).join(', ')} are reserved for female passengers. Please select different seats.`);
+                return false;
+            }
+            
             validateLadiesSeats();
         });
 
